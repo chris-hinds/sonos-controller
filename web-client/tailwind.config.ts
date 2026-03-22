@@ -5,13 +5,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        'sonos-dark': '#0a0a0a',
-        'sonos-surface': '#1a1a1a',
-        'sonos-card': '#242424',
-        'sonos-border': '#333333',
-        'sonos-accent': '#f59e0b',
-        'sonos-text': '#f5f5f5',
-        'sonos-muted': '#888888',
+        // RGB-channel variables allow Tailwind opacity modifiers (bg-sonos-dark/50 etc.)
+        'sonos-dark':    'rgb(var(--color-dark-rgb)    / <alpha-value>)',
+        'sonos-surface': 'rgb(var(--color-surface-rgb) / <alpha-value>)',
+        'sonos-card':    'rgb(var(--color-card-rgb)    / <alpha-value>)',
+        'sonos-border':  'rgb(var(--color-border-rgb)  / <alpha-value>)',
+        'sonos-accent':  'rgb(var(--color-accent-rgb)  / <alpha-value>)',
+        'sonos-text':    'rgb(var(--color-text-rgb)    / <alpha-value>)',
+        'sonos-muted':   'rgb(var(--color-muted-rgb)   / <alpha-value>)',
       },
     },
   },

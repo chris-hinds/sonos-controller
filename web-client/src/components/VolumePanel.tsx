@@ -37,7 +37,7 @@ function VolumeSlider({ label, volume, muted, onVolume, onMute }: VolumeSliderPr
     <div className="flex items-center gap-3">
       <button
         onClick={() => onMute(!muted)}
-        className="flex-shrink-0 text-sonos-muted hover:text-sonos-text transition-colors p-1"
+        className="flex-shrink-0 text-sonos-muted/40 hover:text-sonos-muted transition-colors"
         title={muted ? 'Unmute' : 'Mute'}
         style={{ minWidth: 36, minHeight: 36 }}
       >
@@ -56,25 +56,24 @@ function VolumeSlider({ label, volume, muted, onVolume, onMute }: VolumeSliderPr
         )}
       </button>
 
-      {label && <span className="text-xs text-sonos-muted w-16 truncate flex-shrink-0">{label}</span>}
+      {label && <span className="text-xs text-sonos-muted/50 w-16 truncate flex-shrink-0">{label}</span>}
 
-      <div className="flex-1 flex items-center gap-2">
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={1}
-          value={muted ? 0 : displayVolume}
-          onChange={handleChange}
-          onMouseUp={handleCommit as unknown as React.MouseEventHandler<HTMLInputElement>}
-          onTouchEnd={handleCommit as unknown as React.TouchEventHandler<HTMLInputElement>}
-          className="flex-1"
-          style={{ background: `linear-gradient(to right, #f59e0b ${muted ? 0 : displayVolume}%, #333333 ${muted ? 0 : displayVolume}%)` }}
-        />
-        <span className="text-xs text-sonos-muted w-8 text-right flex-shrink-0">
-          {muted ? 'M' : `${displayVolume}`}
-        </span>
-      </div>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        step={1}
+        value={muted ? 0 : displayVolume}
+        onChange={handleChange}
+        onMouseUp={handleCommit as unknown as React.MouseEventHandler<HTMLInputElement>}
+        onTouchEnd={handleCommit as unknown as React.TouchEventHandler<HTMLInputElement>}
+        className="flex-1"
+        style={{ background: `linear-gradient(to right, var(--color-accent) ${muted ? 0 : displayVolume}%, var(--color-border) ${muted ? 0 : displayVolume}%)` }}
+      />
+
+      <span className="text-xs text-sonos-muted/40 w-7 text-right flex-shrink-0 tabular-nums">
+        {muted ? <span className="text-sonos-muted/30">M</span> : displayVolume}
+      </span>
     </div>
   );
 }
@@ -111,9 +110,7 @@ export default function VolumePanel({ speakerIp, speakers, state }: VolumePanelP
     speakers.find(sp => sp.ip === ip)?.name || ip;
 
   return (
-    <div className="bg-sonos-card rounded-xl p-4 space-y-3">
-      <h3 className="text-sm font-semibold text-sonos-muted uppercase tracking-wider">Volume</h3>
-
+    <div className="space-y-3 pt-4 border-t border-sonos-border/30">
       <VolumeSlider
         label={isGroup ? 'All' : undefined}
         volume={masterVolume}
@@ -121,9 +118,8 @@ export default function VolumePanel({ speakerIp, speakers, state }: VolumePanelP
         onVolume={handleMasterVolume}
         onMute={handleMasterMute}
       />
-
       {isGroup && (
-        <div className="space-y-2 pt-2 border-t border-sonos-border">
+        <div className="space-y-2 pt-2 border-t border-sonos-border/20">
           {members.map(ip => {
             const vol = volumeState[ip];
             return (

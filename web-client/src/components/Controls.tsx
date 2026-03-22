@@ -102,9 +102,9 @@ export default function Controls({ speakerIp, state, onTrackChange }: ControlsPr
   const progressPercent = duration > 0 ? (displayPosition / duration) * 100 : 0;
 
   return (
-    <div className="bg-sonos-card rounded-xl p-4 space-y-4">
+    <div className="space-y-5 py-2">
       {/* Seek bar */}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <input
           type="range"
           min={0}
@@ -117,19 +117,19 @@ export default function Controls({ speakerIp, state, onTrackChange }: ControlsPr
           onMouseUp={handleSeekEnd as unknown as React.MouseEventHandler<HTMLInputElement>}
           onTouchEnd={handleSeekEnd as unknown as React.TouchEventHandler<HTMLInputElement>}
           className="w-full"
-          style={{ background: `linear-gradient(to right, #f59e0b ${progressPercent}%, #333333 ${progressPercent}%)` }}
+          style={{ background: `linear-gradient(to right, var(--color-accent) ${progressPercent}%, var(--color-border) ${progressPercent}%)` }}
         />
-        <div className="flex justify-between text-xs text-sonos-muted">
+        <div className="flex justify-between text-xs text-sonos-muted/50">
           <span>{formatTime(displayPosition)}</span>
           <span>{formatTime(duration)}</span>
         </div>
       </div>
 
       {/* Controls row */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-2">
         <button
           onClick={handleShuffle}
-          className={`p-2 rounded-lg transition-colors ${shuffle ? 'text-sonos-accent' : 'text-sonos-muted hover:text-sonos-text'}`}
+          className={`p-2 rounded-lg transition-colors ${shuffle ? 'text-sonos-accent' : 'text-sonos-muted/40 hover:text-sonos-muted'}`}
           title="Shuffle"
         >
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -137,13 +137,18 @@ export default function Controls({ speakerIp, state, onTrackChange }: ControlsPr
           </svg>
         </button>
 
-        <button onClick={() => { onTrackChange?.(); api.previous(speakerIp); }} className="p-2 text-sonos-text hover:text-sonos-accent transition-colors rounded-lg" title="Previous">
+        <button
+          onClick={() => { onTrackChange?.(); api.previous(speakerIp); }}
+          className="p-2 text-sonos-muted hover:text-sonos-text transition-colors"
+          title="Previous"
+        >
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
         </button>
 
         <button
           onClick={() => isPlaying ? api.pause(speakerIp) : api.play(speakerIp)}
-          className="w-14 h-14 rounded-full bg-sonos-accent hover:bg-amber-400 flex items-center justify-center transition-all duration-150 active:scale-95 text-black"
+          className="w-16 h-16 rounded-full flex items-center justify-center transition-all duration-150 active:scale-95 text-black"
+          style={{ backgroundColor: 'var(--color-accent)' }}
           title={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? (
@@ -153,13 +158,17 @@ export default function Controls({ speakerIp, state, onTrackChange }: ControlsPr
           )}
         </button>
 
-        <button onClick={() => { onTrackChange?.(); api.next(speakerIp); }} className="p-2 text-sonos-text hover:text-sonos-accent transition-colors rounded-lg" title="Next">
+        <button
+          onClick={() => { onTrackChange?.(); api.next(speakerIp); }}
+          className="p-2 text-sonos-muted hover:text-sonos-text transition-colors"
+          title="Next"
+        >
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
         </button>
 
         <button
           onClick={handleRepeat}
-          className={`p-2 rounded-lg transition-colors ${repeat !== 'none' ? 'text-sonos-accent' : 'text-sonos-muted hover:text-sonos-text'}`}
+          className={`p-2 rounded-lg transition-colors ${repeat !== 'none' ? 'text-sonos-accent' : 'text-sonos-muted/40 hover:text-sonos-muted'}`}
           title={`Repeat: ${repeat}`}
         >
           <RepeatIcon repeat={repeat} />

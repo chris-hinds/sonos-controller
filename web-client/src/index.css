@@ -2,14 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark theme (default) */
 :root {
-  --color-dark: #0a0a0a;
+  --color-dark-rgb:    10,  10,  10;
+  --color-surface-rgb: 26,  26,  26;
+  --color-card-rgb:    36,  36,  36;
+  --color-border-rgb:  51,  51,  51;
+  --color-accent-rgb:  245, 158, 11;
+  --color-text-rgb:    245, 245, 245;
+  --color-muted-rgb:   136, 136, 136;
+
+  /* Hex aliases for non-Tailwind uses (body bg, inline styles) */
+  --color-dark:    #0a0a0a;
   --color-surface: #1a1a1a;
-  --color-card: #242424;
-  --color-border: #333333;
-  --color-accent: #f59e0b;
-  --color-text: #f5f5f5;
-  --color-muted: #888888;
+  --color-accent:  #f59e0b;
+  --color-border:  #333333;
+  --color-text:    #f5f5f5;
+  --color-muted:   #888888;
+
+  /* Gradient backgrounds */
+  --app-bg: radial-gradient(ellipse at 30% 0%, rgba(60, 50, 20, 0.25) 0%, transparent 55%),
+            radial-gradient(ellipse at 80% 100%, rgba(20, 25, 50, 0.2) 0%, transparent 50%),
+            #0a0a0a;
+  --sidebar-bg: linear-gradient(180deg, rgba(36, 36, 36, 0.95) 0%, rgba(26, 26, 26, 0.98) 100%);
+}
+
+/* Light theme */
+.light {
+  --color-dark-rgb:    245, 242, 237;
+  --color-surface-rgb: 255, 253, 248;
+  --color-card-rgb:    240, 237, 230;
+  --color-border-rgb:  200, 194, 182;
+  --color-accent-rgb:  194, 97,   6;
+  --color-text-rgb:     22,  18,  12;
+  --color-muted-rgb:     0,   0,   0;
+
+  --color-dark:    #f5f2ed;
+  --color-surface: #fffdf8;
+  --color-accent:  #c26106;
+  --color-border:  #d2cdc3;
+  --color-text:    #19160c;
+  --color-muted:   #373024;
+
+  /* Gradient backgrounds */
+  --app-bg: radial-gradient(ellipse at 20% 0%, rgba(245, 180, 80, 0.12) 0%, transparent 55%),
+            radial-gradient(ellipse at 85% 90%, rgba(180, 150, 100, 0.1) 0%, transparent 50%),
+            #f5f2ed;
+  --sidebar-bg: linear-gradient(180deg, rgba(255, 253, 248, 0.97) 0%, rgba(240, 237, 230, 0.98) 100%);
 }
 
 * {
@@ -22,11 +61,17 @@ html, body, #root {
   padding: 0;
 }
 
+html {
+  transition: background 0.4s ease;
+}
+
 body {
-  background-color: var(--color-dark);
+  background: var(--app-bg);
   color: var(--color-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.4s ease, color 0.3s ease;
+  min-height: 100vh;
 }
 
 /* Custom scrollbar */
@@ -103,6 +148,11 @@ input[type='range']::-moz-range-thumb {
   transition: all 0.2s ease;
 }
 
+/* Theme-aware elements transition */
+aside, main, .bg-sonos-surface, .bg-sonos-card {
+  transition: background 0.4s ease, border-color 0.3s ease;
+}
+
 button {
   cursor: pointer;
   min-height: 44px;
@@ -119,6 +169,28 @@ button {
   background: white !important;
   width: 14px;
   height: 14px;
+}
+
+/* Screensaver */
+@keyframes kenBurns {
+  0%   { transform: scale(1)    translate(0%,   0%);   }
+  25%  { transform: scale(1.06) translate(-3%,  2%);   }
+  50%  { transform: scale(1.1)  translate(2%,  -2%);   }
+  75%  { transform: scale(1.06) translate(3%,   1%);   }
+  100% { transform: scale(1)    translate(0%,   0%);   }
+}
+
+@keyframes screensaverFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ken-burns {
+  animation: kenBurns 45s ease-in-out infinite;
+}
+
+.screensaver-fade-in {
+  animation: screensaverFadeIn 1s ease-out forwards;
 }
 
 /* Seek bar progress overlay */

@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
 import api from '../api/sonosApi';
-import type { FavoriteItem } from '../../../shared/types';
+import type { FavoriteItem, GroupState } from '../../../shared/types';
 
 interface FavoritesProps {
   speakerIp: string;
+  state: GroupState | null;
   onTrackChange?: () => void;
 }
 
-export default function Favorites({ speakerIp, onTrackChange }: FavoritesProps) {
+function isActiveFavorite(fav: FavoriteItem, state: GroupState | null): boolean {
+  if (!state) return false;
+  if (state.track?.uri && fav.uri && state.track.uri === fav.uri) return true;
+  if (state.container?.title && fav.title && state.container.title === fav.title) return true;
+  return false;
+}
+
+export default function Favorites({ speakerIp, state, onTrackChange }: FavoritesProps) {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,70 +37,86 @@ export default function Favorites({ speakerIp, onTrackChange }: FavoritesProps) 
     catch (err) { console.error('Play favorite error:', err); }
   };
 
-  const MusicIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-sonos-muted">
-      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-    </svg>
-  );
-
   return (
-    <div className="bg-sonos-card rounded-xl overflow-hidden">
+    <div className="pt-5">
       <button
         onClick={() => setIsExpanded(v => !v)}
-        className="w-full flex items-center justify-between p-4 hover:bg-sonos-border/20 transition-colors"
+        className="w-full flex items-center justify-between pb-3 hover:opacity-70 transition-opacity"
       >
-        <h3 className="text-sm font-semibold text-sonos-muted uppercase tracking-wider">
-          Favorites {favorites.length > 0 && `(${favorites.length})`}
-        </h3>
-        <svg viewBox="0 0 24 24" fill="currentColor" className={`w-4 h-4 text-sonos-muted transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+        <span className="text-xs text-sonos-muted/50 uppercase tracking-widest">
+          Favorites {favorites.length > 0 && `· ${favorites.length}`}
+        </span>
+        <svg viewBox="0 0 24 24" fill="currentColor" className={`w-4 h-4 text-sonos-muted/30 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
           <path d="M7 10l5 5 5-5z"/>
         </svg>
       </button>
 
       {isExpanded && (
-        <div className="border-t border-sonos-border">
+        <>
           {loading && (
-            <div className="flex items-center justify-center p-6">
-              <div className="w-6 h-6 border-2 border-sonos-muted border-t-sonos-accent rounded-full animate-spin" />
+            <div className="flex justify-center py-6">
+              <div className="w-5 h-5 border-2 border-sonos-muted/20 border-t-sonos-accent rounded-full animate-spin" />
             </div>
           )}
-          {error && <div className="p-4 text-sonos-muted text-sm text-center">{error}</div>}
+          {error && <p className="text-sonos-muted/40 text-xs text-center py-4">{error}</p>}
           {!loading && !error && favorites.length === 0 && (
-            <div className="p-4 text-sonos-muted text-sm text-center">No favorites found</div>
+            <p className="text-sonos-muted/40 text-xs text-center py-4">No favorites found</p>
           )}
           {!loading && favorites.length > 0 && (
-            <div className="divide-y divide-sonos-border/50 max-h-64 overflow-y-auto">
+            <div className="grid grid-cols-3 gap-2">
               {favorites.map((fav, index) => {
                 const artUrl = fav.albumArtURI ? api.artUrl(fav.albumArtURI) : null;
+                const isActive = isActiveFavorite(fav, state);
+                const isPlaying = isActive && state?.transportState === 'PLAYING';
                 return (
                   <button
                     key={fav.id || index}
                     onClick={() => handlePlay(fav)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-sonos-border/30 transition-colors text-left"
+                    className={`relative rounded-xl overflow-hidden bg-sonos-border/20 active:scale-95 transition-transform duration-100 ${isActive ? 'ring-2 ring-sonos-accent' : ''}`}
+                    style={{ aspectRatio: '1 / 1' }}
                   >
-                    <div className="w-10 h-10 rounded bg-sonos-border flex-shrink-0 overflow-hidden flex items-center justify-center">
-                      {artUrl ? (
-                        <img
-                          src={artUrl}
-                          alt={fav.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        />
-                      ) : <MusicIcon />}
+                    {artUrl ? (
+                      <img
+                        src={artUrl}
+                        alt={fav.title}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-sonos-muted/20">
+                          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                        </svg>
+                      </div>
+                    )}
+                    {/* Title overlay */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pt-6 pb-2 px-2">
+                      <p className="text-xs text-white font-medium leading-tight line-clamp-2">{fav.title || 'Unknown'}</p>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-sonos-text truncate">{fav.title || 'Unknown'}</p>
-                      {fav.artist && <p className="text-xs text-sonos-muted truncate">{fav.artist}</p>}
-                    </div>
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-sonos-muted flex-shrink-0 opacity-0 group-hover:opacity-100">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
+                    {/* Playing indicator */}
+                    {isActive && (
+                      <div className="absolute top-1.5 right-1.5">
+                        {isPlaying ? (
+                          <div className="flex items-end gap-px bg-black/50 rounded px-1 py-0.5">
+                            <span className="sound-bar" style={{ height: '5px' }} />
+                            <span className="sound-bar" style={{ height: '8px' }} />
+                            <span className="sound-bar" style={{ height: '5px' }} />
+                          </div>
+                        ) : (
+                          <div className="bg-black/50 rounded px-1.5 py-0.5">
+                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-sonos-accent">
+                              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </button>
                 );
               })}
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
