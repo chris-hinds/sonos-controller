@@ -4,6 +4,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
+import { files as embeddedFiles } from './_embedded.js';
 
 import { addClient, broadcast, sendToClient, getClientCount } from './sse/eventBus.js';
 import { startDiscovery, getSpeakers } from './discovery/ssdp.js';
@@ -80,13 +81,24 @@ app.use('/api/speakers', volumeRouter);
 app.use('/api/speakers', queueRouter);
 app.use('/api/speakers', favoritesRouter);
 
-// Serve static files in production
-const staticPath = process.env.STATIC_PATH || join(__dirname, '../../web-client/dist');
-if (existsSync(staticPath)) {
-  app.use(express.static(staticPath));
-  app.get('*', (_req, res) => {
-    res.sendFile(join(staticPath, 'index.html'));
+// Serve static files — embedded (binary build) or from disk (Docker/dev)
+if (embeddedFiles && embeddedFiles.size > 0) {
+  console.log(`[Server] Serving ${embeddedFiles.size} embedded static files`);
+  app.use((req, res, next) => {
+    // SPA: map unknown paths to index.html
+    const key = embeddedFiles!.has(req.path) ? req.path : '/index.html';
+    const file = embeddedFiles!.get(key);
+    if (!file) return next();
+    res.setHeader('Content-Type', file.mime);
+    res.setHeader('Cache-Control', key === '/index.html' ? 'no-cache' : 'public, max-age=31536000, immutable');
+    res.send(Buffer.from(file.b64, 'base64'));
   });
+} else {
+  const staticPath = process.env.STATIC_PATH || join(__dirname, '../../web-client/dist');
+  if (existsSync(staticPath)) {
+    app.use(express.static(staticPath));
+    app.get('*', (_req, res) => res.sendFile(join(staticPath, 'index.html')));
+  }
 }
 
 app.listen(PORT, '0.0.0.0', () => {

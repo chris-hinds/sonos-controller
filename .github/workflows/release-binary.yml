@@ -1,0 +1,69 @@
+name: Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build binaries
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js (for web client build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web-client/package-lock.json
+
+      - name: Setup Bun (for server compile)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install web client dependencies
+        run: npm ci
+        working-directory: web-client
+
+      - name: Install server dependencies
+        run: bun install
+        working-directory: server
+
+      - name: Build binaries (all platforms)
+        run: bun run scripts/build-binary.ts
+
+      - name: Upload binaries to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/binaries/*
+          body: |
+            ## Sonos Controller ${{ github.ref_name }}
+
+            ### Quick start
+
+            Download the binary for your platform, make it executable, and run it.
+            Open `http://localhost:3001` in your browser — or share the URL with
+            any device on the same network using your machine's IP address.
+
+            | Platform | File |
+            |----------|------|
+            | Linux x64 | `sonos-controller-linux-x64` |
+            | Linux ARM64 (Raspberry Pi) | `sonos-controller-linux-arm64` |
+            | macOS Apple Silicon | `sonos-controller-macos-arm64` |
+            | macOS Intel | `sonos-controller-macos-x64` |
+            | Windows | `sonos-controller-windows-x64.exe` |
+
+            **Linux / macOS:**
+            ```bash
+            chmod +x sonos-controller-*
+            ./sonos-controller-linux-x64
+            ```
+
+            **Windows:** Double-click `sonos-controller-windows-x64.exe`
+
+            The binary runs a local server on port 3001. All devices on your
+            network can connect — no Docker or Node.js required.
