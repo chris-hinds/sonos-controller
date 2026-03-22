@@ -2,7 +2,7 @@
 
 A self-hosted web interface for controlling your Sonos speakers. Runs as a single binary or Docker container — no Sonos app required.
 
-![Main player view](docs/screenshots/player-dark.png)
+![Main player view](docs/screenshots/player-dark.PNG)
 
 ## Features
 
@@ -21,11 +21,11 @@ A self-hosted web interface for controlling your Sonos speakers. Runs as a singl
 
 | Dark mode                                      | Light mode                                       |
 | ---------------------------------------------- | ------------------------------------------------ |
-| ![Dark mode](docs/screenshots/player-dark.png) | ![Light mode](docs/screenshots/player-light.png) |
+| ![Dark mode](docs/screenshots/player-dark.PNG) | ![Light mode](docs/screenshots/player-light.PNG) |
 
 | Fullscreen                                     | Favorites grid                               |
 | ---------------------------------------------- | -------------------------------------------- |
-| ![Fullscreen](docs/screenshots/fullscreen.png) | ![Favorites](docs/screenshots/favorites.png) |
+| ![Fullscreen](docs/screenshots/fullscreen.PNG) | ![Favorites](docs/screenshots/favorites.PNG) |
 
 ---
 
