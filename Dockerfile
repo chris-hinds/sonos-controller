@@ -31,6 +31,7 @@ COPY shared /app/shared
 COPY --from=web-builder /build/web-client/dist /app/web-client/dist
 
 ENV PORT=3001
+ENV STATIC_PATH=/app/web-client/dist
 EXPOSE 3001
 
 CMD ["npx", "tsx", "src/index.ts"]
