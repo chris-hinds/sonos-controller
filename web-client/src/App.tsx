@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import useSpeakers from './hooks/useSpeakers';
 import useSpeakerState from './hooks/useSpeakerState';
 import useTheme from './hooks/useTheme';
+import useAlbumColor from './hooks/useAlbumColor';
+import { useClientSettings } from './hooks/useClientSettings';
+import api from './api/sonosApi';
 import SpeakerList from './components/SpeakerList';
 import NowPlaying from './components/NowPlaying';
 import Controls from './components/Controls';
@@ -13,6 +16,7 @@ import Screensaver from './components/Screensaver';
 
 export default function App() {
   const speakers = useSpeakers();
+  const { settings, updateSettings } = useClientSettings();
   const [selectedIp, setSelectedIp] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
@@ -20,10 +24,26 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { theme, toggle: toggleTheme } = useTheme();
   const speakerState = useSpeakerState(selectedIp);
+  const artUrl = speakerState?.track?.albumArtUrl
+    ? api.artUrl(speakerState.track.albumArtUrl)
+    : null;
+  const [albumR, albumG, albumB] = useAlbumColor(artUrl);
   const prevTrackUriRef = useRef<string | undefined>(undefined);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const defaultAppliedRef = useRef(false);
 
   const SCREENSAVER_DELAY = 90_000;
+
+  // Auto-select default speaker once speakers are discovered
+  useEffect(() => {
+    if (defaultAppliedRef.current || selectedIp || speakers.length === 0) return;
+    const { defaultSpeakerUuid } = settings;
+    if (defaultSpeakerUuid) {
+      const match = speakers.find(s => s.uuid === defaultSpeakerUuid);
+      if (match) setSelectedIp(match.ip);
+    }
+    defaultAppliedRef.current = true;
+  }, [speakers, settings, selectedIp]);
 
   const resetInactivity = () => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
@@ -54,10 +74,31 @@ export default function App() {
     setTransitioning(true);
   };
 
+  const handleSelect = (ip: string) => {
+    setSelectedIp(ip);
+    setDrawerOpen(false);
+  };
+
   const selectedSpeaker = speakers.find(s => s.ip === selectedIp) || null;
 
+  const toggleDefault = () => {
+    const uuid = selectedSpeaker?.uuid ?? null;
+    const next = settings.defaultSpeakerUuid === uuid ? null : uuid;
+    updateSettings({ defaultSpeakerUuid: next });
+  };
+
+  const isDefault = !!selectedSpeaker && settings.defaultSpeakerUuid === selectedSpeaker.uuid;
+
   return (
-    <div className="flex flex-col md:flex-row h-screen text-sonos-text overflow-hidden" style={{ background: 'var(--app-bg)' }}>
+    <div
+      className="flex flex-col md:flex-row h-screen text-sonos-text overflow-hidden"
+      style={{
+        background: 'var(--app-bg)',
+        ['--album-r' as string]: albumR,
+        ['--album-g' as string]: albumG,
+        ['--album-b' as string]: albumB,
+      }}
+    >
       {screensaver && selectedIp && (
         <Screensaver
           state={speakerState}
@@ -82,7 +123,7 @@ export default function App() {
         />
       )}
 
-      {/* Sidebar — desktop: always visible, mobile: slide-in drawer */}
+      {/* Sidebar */}
       <aside
         className={`
           fixed md:relative inset-y-0 left-0 z-50
@@ -134,7 +175,8 @@ export default function App() {
           <SpeakerList
             speakers={speakers}
             selectedIp={selectedIp}
-            onSelect={(ip) => { setSelectedIp(ip); setDrawerOpen(false); }}
+            defaultUuid={settings.defaultSpeakerUuid}
+            onSelect={handleSelect}
           />
         </div>
       </aside>
@@ -170,6 +212,19 @@ export default function App() {
                   )}
                 </div>
                 <div className="flex items-center gap-1">
+                  {/* Pin as default */}
+                  <button
+                    onClick={toggleDefault}
+                    className={`p-2 transition-colors ${isDefault ? 'text-sonos-accent' : 'text-sonos-muted/30 hover:text-sonos-muted'}`}
+                    title={isDefault ? 'Remove default room' : 'Set as default room'}
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d={isDefault
+                        ? "M17 4v7l2 3H5l2-3V4h10zm-5 16c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm0-18H7v2h10V2h-5z"
+                        : "M17 4v7l2 3H5l2-3V4h10zm0-2H7C5.9 2 5 2.9 5 4v7L3 14h18l-2-3V4c0-1.1-.9-2-2-2zm-5 20c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2z"
+                      }/>
+                    </svg>
+                  </button>
                   <button
                     onClick={() => setScreensaver(true)}
                     className="p-2 text-sonos-muted/30 hover:text-sonos-muted transition-colors"
@@ -193,16 +248,9 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Album art */}
               <NowPlaying state={speakerState} transitioning={transitioning} />
-
-              {/* Controls */}
               <Controls speakerIp={selectedIp!} state={speakerState} onTrackChange={handleTrackChange} />
-
-              {/* Volume */}
               <VolumePanel speakerIp={selectedIp!} speakers={speakers} state={speakerState} />
-
-              {/* Favorites + Queue */}
               <Favorites speakerIp={selectedIp!} state={speakerState} onTrackChange={handleTrackChange} />
               <Queue speakerIp={selectedIp!} state={speakerState} />
             </div>

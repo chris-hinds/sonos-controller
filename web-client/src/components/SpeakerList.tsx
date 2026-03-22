@@ -5,10 +5,11 @@ import type { SpeakerInfo } from '../../../shared/types';
 interface SpeakerItemProps {
   speaker: SpeakerInfo;
   isSelected: boolean;
+  isDefault: boolean;
   onSelect: (ip: string) => void;
 }
 
-function SpeakerItem({ speaker, isSelected, onSelect }: SpeakerItemProps) {
+function SpeakerItem({ speaker, isSelected, isDefault, onSelect }: SpeakerItemProps) {
   const state = useSpeakerState(speaker.ip);
   const isPlaying = state?.transportState === 'PLAYING';
   const track = state?.track;
@@ -69,10 +70,15 @@ function SpeakerItem({ speaker, isSelected, onSelect }: SpeakerItemProps) {
         </p>
       </div>
 
-      {/* Selected indicator */}
-      {isSelected && (
-        <div className="w-1.5 h-1.5 rounded-full bg-sonos-accent flex-shrink-0" />
-      )}
+      {/* Indicators */}
+      <div className="flex flex-col items-center gap-1 flex-shrink-0">
+        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-sonos-accent" />}
+        {isDefault && (
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-sonos-accent/60">
+            <path d="M17 4v7l2 3H5l2-3V4h10zm-5 16c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm0-18H7v2h10V2h-5z"/>
+          </svg>
+        )}
+      </div>
     </button>
   );
 }
@@ -80,10 +86,11 @@ function SpeakerItem({ speaker, isSelected, onSelect }: SpeakerItemProps) {
 interface SpeakerListProps {
   speakers: SpeakerInfo[];
   selectedIp: string | null;
+  defaultUuid: string | null;
   onSelect: (ip: string) => void;
 }
 
-export default function SpeakerList({ speakers, selectedIp, onSelect }: SpeakerListProps) {
+export default function SpeakerList({ speakers, selectedIp, defaultUuid, onSelect }: SpeakerListProps) {
   if (speakers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 gap-3">
@@ -108,7 +115,7 @@ export default function SpeakerList({ speakers, selectedIp, onSelect }: SpeakerL
   return (
     <div className="p-2 space-y-1">
       {ungrouped.map(speaker => (
-        <SpeakerItem key={speaker.ip} speaker={speaker} isSelected={selectedIp === speaker.ip} onSelect={onSelect} />
+        <SpeakerItem key={speaker.ip} speaker={speaker} isSelected={selectedIp === speaker.ip} isDefault={defaultUuid === speaker.uuid} onSelect={onSelect} />
       ))}
       {Array.from(groups.entries()).map(([groupId, members]) => {
         const coordinator = members.find(m => m.isCoordinator) || members[0];
@@ -118,7 +125,7 @@ export default function SpeakerList({ speakers, selectedIp, onSelect }: SpeakerL
               {coordinator?.name}
             </p>
             {members.map(speaker => (
-              <SpeakerItem key={speaker.ip} speaker={speaker} isSelected={selectedIp === speaker.ip} onSelect={onSelect} />
+              <SpeakerItem key={speaker.ip} speaker={speaker} isSelected={selectedIp === speaker.ip} isDefault={defaultUuid === speaker.uuid} onSelect={onSelect} />
             ))}
           </div>
         );

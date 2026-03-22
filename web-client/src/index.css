@@ -15,14 +15,26 @@
   /* Hex aliases for non-Tailwind uses (body bg, inline styles) */
   --color-dark:    #0a0a0a;
   --color-surface: #1a1a1a;
-  --color-accent:  #f59e0b;
   --color-border:  #333333;
   --color-text:    #f5f5f5;
   --color-muted:   #888888;
 
-  /* Gradient backgrounds */
-  --app-bg: radial-gradient(ellipse at 30% 0%, rgba(60, 50, 20, 0.25) 0%, transparent 55%),
-            radial-gradient(ellipse at 80% 100%, rgba(20, 25, 50, 0.2) 0%, transparent 50%),
+  /* Album art colour — updated dynamically via JS, fallback = accent amber */
+  --album-r: 245;
+  --album-g: 158;
+  --album-b: 11;
+
+  /* Derived accent — all UI chrome uses this so it shifts with the album */
+  --color-accent: rgb(var(--album-r), var(--album-g), var(--album-b));
+  --color-accent-rgb: var(--album-r), var(--album-g), var(--album-b);
+
+  /* Gradient backgrounds — use album colour for ambient wash */
+  --app-bg: radial-gradient(ellipse at 60% 0%,
+              rgba(var(--album-r), var(--album-g), var(--album-b), 0.18) 0%,
+              transparent 55%),
+            radial-gradient(ellipse at 10% 80%,
+              rgba(var(--album-r), var(--album-g), var(--album-b), 0.08) 0%,
+              transparent 50%),
             #0a0a0a;
   --sidebar-bg: linear-gradient(180deg, rgba(36, 36, 36, 0.95) 0%, rgba(26, 26, 26, 0.98) 100%);
 }
@@ -39,14 +51,17 @@
 
   --color-dark:    #f5f2ed;
   --color-surface: #fffdf8;
-  --color-accent:  #c26106;
   --color-border:  #d2cdc3;
   --color-text:    #19160c;
   --color-muted:   #373024;
 
   /* Gradient backgrounds */
-  --app-bg: radial-gradient(ellipse at 20% 0%, rgba(245, 180, 80, 0.12) 0%, transparent 55%),
-            radial-gradient(ellipse at 85% 90%, rgba(180, 150, 100, 0.1) 0%, transparent 50%),
+  --app-bg: radial-gradient(ellipse at 60% 0%,
+              rgba(var(--album-r), var(--album-g), var(--album-b), 0.10) 0%,
+              transparent 55%),
+            radial-gradient(ellipse at 10% 80%,
+              rgba(var(--album-r), var(--album-g), var(--album-b), 0.05) 0%,
+              transparent 50%),
             #f5f2ed;
   --sidebar-bg: linear-gradient(180deg, rgba(255, 253, 248, 0.97) 0%, rgba(240, 237, 230, 0.98) 100%);
 }
@@ -62,7 +77,7 @@ html, body, #root {
 }
 
 html {
-  transition: background 0.4s ease;
+  transition: background 1.2s ease;
 }
 
 body {

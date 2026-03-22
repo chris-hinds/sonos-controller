@@ -40,7 +40,9 @@ export default function NowPlaying({ state, transitioning }: NowPlayingProps) {
             className="absolute inset-0 w-full h-full object-cover"
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to top, rgba(var(--album-r), var(--album-g), var(--album-b), 0.85) 0%, rgba(0,0,0,0.15) 50%, transparent 100%)'
+          }} />
           <div className="absolute bottom-0 left-0 right-0 p-5">
             {container?.title && (
               <p className="text-white/40 text-xs tracking-wide mb-1 truncate">
