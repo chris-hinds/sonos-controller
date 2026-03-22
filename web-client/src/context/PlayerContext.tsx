@@ -26,6 +26,9 @@ interface PlayerContextValue {
   screensaver: boolean;
   setScreensaver: (v: boolean) => void;
   resetInactivity: () => void;
+  // Drawer (mobile sidebar)
+  drawerOpen: boolean;
+  setDrawerOpen: (v: boolean) => void;
   // Settings
   settings: ClientSettings;
   updateSettings: (patch: Partial<ClientSettings>) => void;
@@ -43,6 +46,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [selectedIp, setSelectedIp] = useState<string | null>(null);
   const [transitioning, setTransitioning] = useState(false);
   const [screensaver, setScreensaver] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const speakerState = useSpeakerState(selectedIp);
   const artUrl = speakerState?.track?.albumArtUrl
     ? api.artUrl(speakerState.track.albumArtUrl)
@@ -102,6 +106,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       speakerState, albumR, albumG, albumB,
       transitioning, handleTrackChange,
       screensaver, setScreensaver, resetInactivity,
+      drawerOpen, setDrawerOpen,
       settings, updateSettings,
       theme, toggleTheme,
     }}>

@@ -8,13 +8,13 @@ export default function RootLayout() {
     speakers, selectedIp, selectedSpeaker, setSelectedIp,
     speakerState, albumR, albumG, albumB,
     screensaver, setScreensaver, resetInactivity,
+    drawerOpen, setDrawerOpen,
     settings, theme, toggleTheme,
   } = usePlayer();
 
   const navigate = useNavigate();
   const routerState = useRouterState();
   const isSettings = routerState.location.pathname === '/settings';
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleSelect = (ip: string) => {
     setSelectedIp(ip);
@@ -122,5 +122,3 @@ export default function RootLayout() {
   );
 }
 
-// useState needs to be imported
-import { useState } from 'react';

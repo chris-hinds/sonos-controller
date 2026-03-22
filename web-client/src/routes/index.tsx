@@ -5,17 +5,16 @@ import Controls from '../components/Controls';
 import VolumePanel from '../components/VolumePanel';
 import Favorites from '../components/Favorites';
 import Queue from '../components/Queue';
-import { useState } from 'react';
 
 export default function IndexRoute() {
   const {
     speakers, selectedIp, selectedSpeaker, speakerState,
     transitioning, handleTrackChange,
+    drawerOpen, setDrawerOpen,
     settings, updateSettings,
     setScreensaver,
   } = usePlayer();
   const navigate = useNavigate();
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isDefault = !!selectedSpeaker && settings.defaultSpeakerUuid === selectedSpeaker.uuid;
 
