@@ -1,0 +1,9 @@
+services:
+  sonos:
+    image: ghcr.io/${GITHUB_REPOSITORY:-sonos-controller}:latest
+    # Uncomment the line below to build locally instead of pulling the pre-built image:
+    # build: .
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - PORT=3001
