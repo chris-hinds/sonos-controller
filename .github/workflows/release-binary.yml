@@ -57,11 +57,27 @@ jobs:
             | macOS Intel | `sonos-controller-macos-x64` |
             | Windows | `sonos-controller-windows-x64.exe` |
 
-            **Linux / macOS:**
+            **Linux:**
             ```bash
-            chmod +x sonos-controller-*
+            chmod +x sonos-controller-linux-x64
             ./sonos-controller-linux-x64
             ```
+
+            **macOS Apple Silicon:**
+            ```bash
+            xattr -d com.apple.quarantine sonos-controller-macos-arm64
+            chmod +x sonos-controller-macos-arm64
+            ./sonos-controller-macos-arm64
+            ```
+
+            **macOS Intel:**
+            ```bash
+            xattr -d com.apple.quarantine sonos-controller-macos-x64
+            chmod +x sonos-controller-macos-x64
+            ./sonos-controller-macos-x64
+            ```
+
+            > **macOS note:** If you see _"damaged and can't be opened"_, run the `xattr` command above first. This removes the Gatekeeper quarantine flag that macOS applies to unsigned binaries downloaded from the internet. The binary is safe — it's just not signed with an Apple Developer certificate.
 
             **Windows:** Double-click `sonos-controller-windows-x64.exe`
 
