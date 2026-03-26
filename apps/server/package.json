@@ -1,0 +1,26 @@
+{
+  "name": "@sonos/server",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sonos/shared": "*",
+    "express": "^4.18",
+    "cors": "^2.8",
+    "node-ssdp": "^4.0",
+    "fast-xml-parser": "^4.3",
+    "dotenv": "^16.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0",
+    "typescript": "^5.0",
+    "@types/node": "^20",
+    "@types/express": "^4.17",
+    "@types/cors": "^2.8"
+  }
+}
