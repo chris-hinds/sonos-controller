@@ -14,8 +14,8 @@ import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
 import { join, relative } from 'path';
 
 const ROOT = join(import.meta.dir, '..');
-const DIST_DIR = join(ROOT, 'web-client', 'dist');
-const EMBEDDED_FILE = join(ROOT, 'server', 'src', '_embedded.ts');
+const DIST_DIR = join(ROOT, 'apps/web', 'dist');
+const EMBEDDED_FILE = join(ROOT, 'apps/server', 'src', '_embedded.ts');
 const OUT_DIR = join(ROOT, 'dist', 'binaries');
 
 const MIME_MAP: Record<string, string> = {
@@ -68,7 +68,7 @@ const TARGETS = [
 try {
   // 1. Build web client
   console.log('\n[1/4] Building web client...');
-  execSync('npm run build', { cwd: join(ROOT, 'web-client'), stdio: 'inherit' });
+  execSync('npm run build --workspace=apps/web', { cwd: ROOT, stdio: 'inherit' });
 
   // 2. Generate embedded static file map
   console.log('\n[2/4] Embedding static files...');
@@ -95,7 +95,7 @@ ${entries.join(',\n')}
     console.log(`  → ${name}`);
     execSync(
       `bun build --compile --target=${target} src/index.ts --outfile=${outFile}`,
-      { cwd: join(ROOT, 'server'), stdio: 'inherit' }
+      { cwd: join(ROOT, 'apps/server'), stdio: 'inherit' }
     );
   }
 
