@@ -2,42 +2,34 @@
 FROM node:20-alpine AS web-builder
 WORKDIR /build
 
-# Copy only package.json (not the lock file) so npm resolves optional native
-# deps for the current platform (musl on Alpine). The lock file is generated
-# on macOS and records darwin binaries; copying it causes npm to skip the
-# linux-x64-musl rollup variant needed for the build.
+# No lock file → npm resolves platform-native optional deps fresh
+# (e.g. @rollup/rollup-linux-x64-musl on Alpine instead of the darwin variant
+# recorded in the macOS-generated lock file).
 COPY package.json ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/server/package.json ./apps/server/
 COPY packages/shared/package.json ./packages/shared/
-RUN npm install
+RUN npm install --workspace=apps/web
 
-# Source
 COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
 
-# Build with empty VITE_API_URL — the client is served by the same Express
-# server, so API requests go to the same origin with no absolute URL needed
-RUN VITE_API_URL="" npm run build --workspace=apps/web
+# cd into the workspace so vite resolves its root and output dir unambiguously.
+RUN cd apps/web && VITE_API_URL="" npm run build
 
 # ── Stage 2: server runtime ──────────────────────────────────────────────────
 FROM node:20-alpine
 WORKDIR /app
 
-# Copy all workspace manifests (no lock file) so npm can resolve the
-# @sonos/shared workspace link and install server deps correctly.
+# @sonos/shared is devDep (type-only, erased by tsx/esbuild at runtime) so
+# --omit=dev skips it. tsx is in dependencies and is included.
 COPY package.json ./
 COPY apps/server/package.json ./apps/server/
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
-RUN npm install --workspace=apps/server
+RUN npm install --workspace=apps/server --omit=dev
 
-# Server source + shared types (import type statements are erased by tsx/esbuild
-# so @sonos/shared needs no runtime presence — only npm workspace resolution above)
 COPY apps/server/src ./apps/server/src
-COPY packages/shared ./packages/shared
-
-# Built web client
 COPY --from=web-builder /build/apps/web/dist /app/apps/web/dist
 
 ENV PORT=3001

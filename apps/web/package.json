@@ -9,12 +9,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sonos/shared": "*",
     "@tanstack/react-router": "^1.168.2",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@sonos/shared": "*",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^4",
