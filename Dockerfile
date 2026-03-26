@@ -24,13 +24,16 @@ RUN VITE_API_URL="" npm run build --workspace=apps/web
 FROM node:20-alpine
 WORKDIR /app
 
-# Install server deps only
-COPY package*.json ./
-COPY apps/server/package*.json ./apps/server/
+# Copy all workspace manifests (no lock file) so npm can resolve the
+# @sonos/shared workspace link and install server deps correctly.
+COPY package.json ./
+COPY apps/server/package.json ./apps/server/
+COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
 RUN npm install --workspace=apps/server
 
-# Server source + shared types
+# Server source + shared types (import type statements are erased by tsx/esbuild
+# so @sonos/shared needs no runtime presence — only npm workspace resolution above)
 COPY apps/server/src ./apps/server/src
 COPY packages/shared ./packages/shared
 
@@ -41,4 +44,4 @@ ENV PORT=3001
 ENV STATIC_PATH=/app/apps/web/dist
 EXPOSE 3001
 
-CMD ["npx", "tsx", "apps/server/src/index.ts"]
+CMD ["node_modules/.bin/tsx", "apps/server/src/index.ts"]
