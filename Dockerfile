@@ -2,11 +2,14 @@
 FROM node:20-alpine AS web-builder
 WORKDIR /build
 
-# Install deps with workspace awareness (better layer caching)
+# Copy all workspace manifests so npm can resolve optional native deps
+# for the current platform (musl on Alpine) — scoped workspace installs
+# follow the lock file too strictly and miss platform-specific optional pkgs.
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
+COPY apps/server/package*.json ./apps/server/
 COPY packages/shared/package.json ./packages/shared/
-RUN npm install --workspace=apps/web
+RUN npm install
 
 # Source
 COPY packages/shared ./packages/shared
@@ -20,7 +23,7 @@ RUN VITE_API_URL="" npm run build --workspace=apps/web
 FROM node:20-alpine
 WORKDIR /app
 
-# Install server deps
+# Install server deps only
 COPY package*.json ./
 COPY apps/server/package*.json ./apps/server/
 COPY packages/shared/package.json ./packages/shared/
