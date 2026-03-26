@@ -2,12 +2,13 @@
 FROM node:20-alpine AS web-builder
 WORKDIR /build
 
-# Copy all workspace manifests so npm can resolve optional native deps
-# for the current platform (musl on Alpine) — scoped workspace installs
-# follow the lock file too strictly and miss platform-specific optional pkgs.
-COPY package*.json ./
-COPY apps/web/package*.json ./apps/web/
-COPY apps/server/package*.json ./apps/server/
+# Copy only package.json (not the lock file) so npm resolves optional native
+# deps for the current platform (musl on Alpine). The lock file is generated
+# on macOS and records darwin binaries; copying it causes npm to skip the
+# linux-x64-musl rollup variant needed for the build.
+COPY package.json ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/server/package.json ./apps/server/
 COPY packages/shared/package.json ./packages/shared/
 RUN npm install
 
