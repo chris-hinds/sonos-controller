@@ -116,11 +116,12 @@ export default function SettingsRoute() {
           {/* Appearance */}
           <section className="space-y-3">
             <h2 className="text-xs text-sonos-muted/50 uppercase tracking-widest">Appearance</h2>
+
             <button
               onClick={toggleTheme}
               className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-sonos-border/20 hover:bg-sonos-border/30 transition-colors"
             >
-              <div>
+              <div className="text-left">
                 <p className="text-sm font-medium text-sonos-text">Theme</p>
                 <p className="text-xs text-sonos-muted/50">{theme === 'dark' ? 'Dark' : 'Light'} mode</p>
               </div>
@@ -131,6 +132,30 @@ export default function SettingsRoute() {
                   <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
                 )}
               </svg>
+            </button>
+
+            <button
+              onClick={() => updateSettings({ albumColorAccent: !settings.albumColorAccent })}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-sonos-border/20 hover:bg-sonos-border/30 transition-colors"
+            >
+              <div className="text-left">
+                <p className="text-sm font-medium text-sonos-text">Album colour accent</p>
+                <p className="text-xs text-sonos-muted/50">
+                  {settings.albumColorAccent
+                    ? 'Accent colour matches album art'
+                    : 'Accent colour is fixed amber'}
+                </p>
+              </div>
+              {/* Toggle pill */}
+              <div
+                className="relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0"
+                style={{ backgroundColor: settings.albumColorAccent ? 'var(--color-accent)' : 'var(--color-border)' }}
+              >
+                <div
+                  className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200"
+                  style={{ transform: settings.albumColorAccent ? 'translateX(22px)' : 'translateX(2px)' }}
+                />
+              </div>
             </button>
           </section>
 

@@ -1,6 +1,6 @@
 import { soapCall } from './soap.js';
 import { XMLParser } from 'fast-xml-parser';
-import type { ContentItem, FavoriteItem, QueueItem } from '../../../shared/types.js';
+import type { ContentItem, FavoriteItem, QueueItem, AudioInput } from '../../../shared/types.js';
 
 const SERVICE_PATH = '/MediaServer/ContentDirectory/Control';
 const SERVICE_TYPE = 'urn:schemas-upnp-org:service:ContentDirectory:1';
@@ -186,4 +186,33 @@ async function getSonosPlaylists(ip: string): Promise<ContentItem[]> {
   }
 }
 
-export { getFavorites, getQueue, getSonosPlaylists, browse };
+async function getAudioInputs(ip: string): Promise<AudioInput[]> {
+  try {
+    const { result } = await browse(ip, 'AI:', 'BrowseDirectChildren', '*', 0, 20);
+    const items = parseDidlList(result);
+    return items
+      .map(item => {
+        const res = item.res;
+        let uri = '';
+        if (res) {
+          if (typeof res === 'string') uri = res;
+          else if (res['#text']) uri = res['#text'];
+          else if (Array.isArray(res)) uri = res[0]?.['#text'] || res[0] || '';
+        }
+        return {
+          id: item['@_id'] || '',
+          title: String(item['dc:title'] || item.title || ''),
+          uri,
+        };
+      })
+      .filter(i => i.uri);
+  } catch (err) {
+    // 701 = no such object — speaker has no audio inputs, not an error worth logging
+    if (!(err as Error).message.includes('701')) {
+      console.error(`[ContentDirectory] getAudioInputs error for ${ip}:`, (err as Error).message);
+    }
+    return [];
+  }
+}
+
+export { getFavorites, getQueue, getSonosPlaylists, getAudioInputs, browse };

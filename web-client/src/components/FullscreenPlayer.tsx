@@ -83,6 +83,7 @@ export default function FullscreenPlayer({ state, speakerIp, speakerName, onClos
           <img
             src={artUrl}
             alt=""
+            crossOrigin="anonymous"
             className="absolute inset-0 w-full h-full object-cover"
             style={{ filter: 'blur(60px)', transform: 'scale(1.3)' }}
           />
@@ -124,7 +125,7 @@ export default function FullscreenPlayer({ state, speakerIp, speakerName, onClos
             }}
           >
             {artUrl ? (
-              <img src={artUrl} alt={track?.album || 'Album art'} className="w-full h-full object-cover" />
+              <img src={artUrl} alt={track?.album || 'Album art'} crossOrigin="anonymous" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-white/5 flex items-center justify-center">
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-20 h-20 text-white/20">

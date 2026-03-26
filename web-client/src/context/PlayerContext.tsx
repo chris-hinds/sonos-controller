@@ -52,6 +52,18 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     ? api.artUrl(speakerState.track.albumArtUrl)
     : null;
   const [albumR, albumG, albumB] = useAlbumColor(artUrl);
+
+  // Push album colours onto :root. When albumColorAccent is off, use the amber default.
+  useEffect(() => {
+    const [r, g, b] = settings.albumColorAccent
+      ? [albumR, albumG, albumB]
+      : [245, 158, 11];
+    const root = document.documentElement;
+    root.style.setProperty('--album-r', String(r));
+    root.style.setProperty('--album-g', String(g));
+    root.style.setProperty('--album-b', String(b));
+  }, [albumR, albumG, albumB, settings.albumColorAccent]);
+
   const prevTrackUriRef = useRef<string | undefined>(undefined);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const defaultAppliedRef = useRef(false);

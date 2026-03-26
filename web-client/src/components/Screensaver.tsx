@@ -45,6 +45,7 @@ export default function Screensaver({ state, speakerName, onDismiss }: Screensav
           <img
             src={artUrl}
             alt=""
+            crossOrigin="anonymous"
             className="w-full h-full object-cover"
             style={{ filter: 'blur(60px)' }}
           />
@@ -74,6 +75,7 @@ export default function Screensaver({ state, speakerName, onDismiss }: Screensav
             <img
               src={artUrl}
               alt={track?.album || 'Album art'}
+              crossOrigin="anonymous"
               className="rounded-2xl object-cover screensaver-art"
               style={{
                 width: 'clamp(200px, 45vh, 480px)',

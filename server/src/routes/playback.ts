@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getSpeakers } from '../discovery/ssdp.js';
-import { play, pause, next, previous, seek, setShuffle, setRepeat } from '../upnp/avTransport.js';
+import { play, pause, next, previous, seek, setShuffle, setRepeat, setAVTransportURI } from '../upnp/avTransport.js';
+import { getAudioInputs } from '../upnp/contentDirectory.js';
 import { setGracePeriod, getGroupState, groupStateMap } from '../poller.js';
 import { broadcast } from '../sse/eventBus.js';
 import type { GroupState, RepeatMode } from '../../../shared/types.js';
@@ -140,6 +141,47 @@ router.post('/:ip/repeat', async (req, res) => {
       return;
     }
     console.error('[Route] repeat error:', (err as Error).message);
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// Audio inputs — query the individual speaker (not coordinator) as inputs are per-device.
+// Home theater soundbars (Arc, Beam, Playbar, Playbase, Ray) may not expose AI: via
+// ContentDirectory on newer firmware, so synthesise the TV input from the speaker's UUID.
+const HT_MODELS = ['arc', 'beam', 'playbar', 'playbase', 'ray'];
+
+router.get('/:ip/inputs', async (req, res) => {
+  try {
+    let inputs = await getAudioInputs(req.params.ip);
+
+    if (inputs.length === 0) {
+      const speaker = getSpeakers().find(s => s.ip === req.params.ip);
+      const model = (speaker?.model || '').toLowerCase();
+      if (HT_MODELS.some(m => model.includes(m)) && speaker?.uuid) {
+        inputs = [{ id: 'tv', title: 'TV', uri: `x-sonos-htastream:${speaker.uuid}:spdif` }];
+      }
+    }
+
+    res.json(inputs);
+  } catch (err) {
+    console.error('[Route] GET inputs error:', (err as Error).message);
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+router.post('/:ip/play-input', async (req, res) => {
+  try {
+    const { uri } = req.body as { uri?: string };
+    if (!uri) { res.status(400).json({ error: 'uri required' }); return; }
+    const coordIp = getCoordinatorIp(req.params.ip);
+    const groupId = getGroupId(req.params.ip);
+    await setAVTransportURI(coordIp, uri, '');
+    await play(coordIp);
+    setGracePeriod(groupId, 'track', 5000);
+    setGracePeriod(groupId, 'transportState', 5000);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[Route] play-input error:', (err as Error).message);
     res.status(500).json({ error: (err as Error).message });
   }
 });

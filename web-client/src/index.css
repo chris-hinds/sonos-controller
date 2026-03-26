@@ -45,7 +45,7 @@
   --color-surface-rgb: 255, 253, 248;
   --color-card-rgb:    240, 237, 230;
   --color-border-rgb:  200, 194, 182;
-  --color-accent-rgb:  194, 97,   6;
+  --color-accent-rgb:  var(--album-r), var(--album-g), var(--album-b);
   --color-text-rgb:     22,  18,  12;
   --color-muted-rgb:     0,   0,   0;
 
@@ -172,6 +172,19 @@ button {
   cursor: pointer;
   min-height: 44px;
   min-width: 44px;
+}
+
+/* Volume slider — larger thumb for easier touch */
+.volume-slider {
+  height: 6px !important;
+}
+.volume-slider::-webkit-slider-thumb {
+  width: 22px !important;
+  height: 22px !important;
+}
+.volume-slider::-moz-range-thumb {
+  width: 22px !important;
+  height: 22px !important;
 }
 
 /* Fullscreen player — white thumb on seek bar */

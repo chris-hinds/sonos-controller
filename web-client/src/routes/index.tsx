@@ -5,23 +5,16 @@ import Controls from '../components/Controls';
 import VolumePanel from '../components/VolumePanel';
 import Favorites from '../components/Favorites';
 import Queue from '../components/Queue';
+import SourceInput from '../components/SourceInput';
 
 export default function IndexRoute() {
   const {
     speakers, selectedIp, selectedSpeaker, speakerState,
     transitioning, handleTrackChange,
     drawerOpen, setDrawerOpen,
-    settings, updateSettings,
     setScreensaver,
   } = usePlayer();
   const navigate = useNavigate();
-
-  const isDefault = !!selectedSpeaker && settings.defaultSpeakerUuid === selectedSpeaker.uuid;
-
-  const toggleDefault = () => {
-    const uuid = selectedSpeaker?.uuid ?? null;
-    updateSettings({ defaultSpeakerUuid: settings.defaultSpeakerUuid === uuid ? null : uuid });
-  };
 
   if (!selectedSpeaker) {
     return (
@@ -69,19 +62,6 @@ export default function IndexRoute() {
           </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={toggleDefault}
-              className={`p-2 transition-colors ${isDefault ? 'text-sonos-accent' : 'text-sonos-muted/30 hover:text-sonos-muted'}`}
-              title={isDefault ? 'Remove default room' : 'Set as default room'}
-              style={isDefault ? { color: 'var(--color-accent)' } : {}}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                <path d={isDefault
-                  ? "M17 4v7l2 3H5l2-3V4h10zm-5 16c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm0-18H7v2h10V2h-5z"
-                  : "M17 4v7l2 3H5l2-3V4h10zm0-2H7C5.9 2 5 2.9 5 4v7L3 14h18l-2-3V4c0-1.1-.9-2-2-2zm-5 20c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2z"
-                }/>
-              </svg>
-            </button>
-            <button
               onClick={() => setScreensaver(true)}
               className="p-2 text-sonos-muted/30 hover:text-sonos-muted transition-colors"
               title="Screensaver"
@@ -102,6 +82,7 @@ export default function IndexRoute() {
           </div>
         </div>
 
+        <SourceInput speakerIp={selectedIp!} state={speakerState} />
         <NowPlaying state={speakerState} transitioning={transitioning} />
         <Controls speakerIp={selectedIp!} state={speakerState} onTrackChange={handleTrackChange} />
         <VolumePanel speakerIp={selectedIp!} speakers={speakers} state={speakerState} />

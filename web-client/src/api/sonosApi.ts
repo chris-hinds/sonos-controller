@@ -1,4 +1,4 @@
-import type { SpeakerInfo, GroupState, FavoriteItem, QueueItem } from '../../../shared/types';
+import type { SpeakerInfo, GroupState, FavoriteItem, QueueItem, AudioInput } from '../../../shared/types';
 
 export const BASE = import.meta.env.VITE_API_URL || '';
 
@@ -73,6 +73,16 @@ const api = {
     fetch(`${BASE}/api/speakers/${ip}/play-favorite`, {
       method: 'POST',
       body: JSON.stringify({ uri, metadata }),
+      headers: { 'Content-Type': 'application/json' },
+    }),
+
+  getInputs: (ip: string): Promise<AudioInput[]> =>
+    fetch(`${BASE}/api/speakers/${ip}/inputs`).then(r => r.json()),
+
+  playInput: (ip: string, uri: string): Promise<Response> =>
+    fetch(`${BASE}/api/speakers/${ip}/play-input`, {
+      method: 'POST',
+      body: JSON.stringify({ uri }),
       headers: { 'Content-Type': 'application/json' },
     }),
 

@@ -38,6 +38,7 @@ export default function NowPlaying({ state, transitioning }: NowPlayingProps) {
             src={artUrl}
             alt={track?.album || 'Album art'}
             className="absolute inset-0 w-full h-full object-cover"
+            crossOrigin="anonymous"
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
           <div className="absolute inset-0" style={{

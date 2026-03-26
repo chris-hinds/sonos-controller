@@ -5,11 +5,10 @@ import Screensaver from '../components/Screensaver';
 
 export default function RootLayout() {
   const {
-    speakers, selectedIp, selectedSpeaker, setSelectedIp,
-    speakerState, albumR, albumG, albumB,
+    speakers, selectedIp, selectedSpeaker, setSelectedIp, speakerState,
     screensaver, setScreensaver, resetInactivity,
     drawerOpen, setDrawerOpen,
-    settings, theme, toggleTheme,
+    settings, updateSettings, theme, toggleTheme,
   } = usePlayer();
 
   const navigate = useNavigate();
@@ -25,12 +24,7 @@ export default function RootLayout() {
   return (
     <div
       className="flex flex-col md:flex-row h-screen text-sonos-text overflow-hidden"
-      style={{
-        background: 'var(--app-bg)',
-        ['--album-r' as string]: albumR,
-        ['--album-g' as string]: albumG,
-        ['--album-b' as string]: albumB,
-      }}
+      style={{ background: 'var(--app-bg)' }}
     >
       {screensaver && selectedIp && (
         <Screensaver
@@ -110,6 +104,7 @@ export default function RootLayout() {
             selectedIp={selectedIp}
             defaultUuid={settings.defaultSpeakerUuid}
             onSelect={handleSelect}
+            onSetDefault={(uuid) => updateSettings({ defaultSpeakerUuid: uuid })}
           />
         </div>
       </aside>

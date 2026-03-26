@@ -63,3 +63,9 @@ export interface FavoriteItem extends ContentItem {
 export interface QueueItem extends ContentItem {
   index: number;
 }
+
+export interface AudioInput {
+  id: string;
+  title: string;
+  uri: string;
+}
