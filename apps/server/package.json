@@ -17,6 +17,7 @@
     "tsx": "^4.0"
   },
   "devDependencies": {
+    "@sonos/shared": "*",
     "typescript": "^5.0",
     "@types/node": "^20",
     "@types/express": "^4.17",

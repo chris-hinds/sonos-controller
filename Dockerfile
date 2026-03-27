@@ -1,30 +1,34 @@
-# ── Stage 1: build the web client ───────────────────────────────────────────
-# Install and build in the app's own directory — no monorepo workspace flags.
-# @sonos/shared imports are all `import type` so vite/esbuild strips them
-# without ever resolving the module; packages/shared is not needed here.
-FROM node:20-alpine AS web-builder
-WORKDIR /build/apps/web
+# ── Stage 1: build the web client ─────────────────────────────────────────────
+FROM node:25-alpine AS web
+WORKDIR /app
 
-COPY apps/web/package.json .
-RUN npm install
+# Manifests only — no lock file so npm resolves platform-native packages
+# correctly (the macOS lock records darwin rollup binaries, not linux-musl).
+COPY package.json .
+COPY apps/web/package.json    apps/web/
+COPY apps/server/package.json apps/server/
+COPY packages/shared/package.json packages/shared/
+RUN npm install -w apps/web
 
-COPY apps/web .
-RUN VITE_API_URL="" npx vite build
+COPY packages/shared packages/shared
+COPY apps/web      apps/web
+RUN npm run build -w apps/web
 
-# ── Stage 2: server runtime ──────────────────────────────────────────────────
-# Same approach — install server deps directly, no workspace resolution.
-# tsx is in dependencies; @sonos/shared is not referenced (type-only, erased).
-FROM node:20-alpine
-WORKDIR /app/apps/server
+# ── Stage 2: server runtime ───────────────────────────────────────────────────
+FROM node:25-alpine
+WORKDIR /app
 
-COPY apps/server/package.json .
-RUN npm install --omit=dev
+COPY package.json .
+COPY apps/web/package.json    apps/web/
+COPY apps/server/package.json apps/server/
+COPY packages/shared/package.json packages/shared/
+RUN npm install -w apps/server --omit=dev
 
-COPY apps/server/src ./src
-COPY --from=web-builder /build/apps/web/dist /app/apps/web/dist
+COPY apps/server/src apps/server/src
+COPY packages/shared packages/shared
+COPY --from=web /app/apps/web/dist apps/web/dist
 
 ENV PORT=3001
 ENV STATIC_PATH=/app/apps/web/dist
 EXPOSE 3001
-
-CMD ["node_modules/.bin/tsx", "src/index.ts"]
+CMD ["node_modules/.bin/tsx", "apps/server/src/index.ts"]
