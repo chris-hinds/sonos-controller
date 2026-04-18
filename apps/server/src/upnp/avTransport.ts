@@ -213,6 +213,17 @@ async function seekToQueueItem(ip: string, index: number): Promise<void> {
   });
 }
 
+async function reorderQueueItem(ip: string, fromIndex: number, toIndex: number): Promise<void> {
+  // Sonos uses 1-based indices. InsertBefore must account for the gap left by removing the track.
+  const insertBefore = toIndex < fromIndex ? toIndex + 1 : toIndex + 2;
+  await soapCall(ip, SERVICE_PATH, SERVICE_TYPE, 'ReorderTracksInQueue', {
+    InstanceID: 0,
+    StartingIndex: fromIndex + 1,
+    NumberOfTracks: 1,
+    InsertBefore: insertBefore,
+  });
+}
+
 async function removeAllTracksFromQueue(ip: string): Promise<void> {
   await soapCall(ip, SERVICE_PATH, SERVICE_TYPE, 'RemoveAllTracksFromQueue', { InstanceID: 0 });
 }
@@ -244,6 +255,7 @@ export {
   setPlayMode,
   setAVTransportURI,
   seekToQueueItem,
+  reorderQueueItem,
   removeAllTracksFromQueue,
   addURIToQueue,
 };

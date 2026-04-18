@@ -1,6 +1,6 @@
 services:
   sonos:
-    image: ghcr.io/${GITHUB_REPOSITORY:-sonos-controller}:latest
+    image: ghcr.io/${GITHUB_REPOSITORY:-kyuu}:latest
     # Uncomment the line below to build locally instead of pulling the pre-built image:
     # build: .
     network_mode: host

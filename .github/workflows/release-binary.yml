@@ -40,7 +40,7 @@ jobs:
         with:
           files: dist/binaries/*
           body: |
-            ## Sonos Controller ${{ github.ref_name }}
+            ## Kyuu ${{ github.ref_name }}
 
             ### Quick start
 
@@ -50,35 +50,37 @@ jobs:
 
             | Platform | File |
             |----------|------|
-            | Linux x64 | `sonos-controller-linux-x64` |
-            | Linux ARM64 (Raspberry Pi) | `sonos-controller-linux-arm64` |
-            | macOS Apple Silicon | `sonos-controller-macos-arm64` |
-            | macOS Intel | `sonos-controller-macos-x64` |
-            | Windows | `sonos-controller-windows-x64.exe` |
+            | Platform | File |
+            |----------|------|
+            | Linux x64 | `kyuu-linux-x64` |
+            | Linux ARM64 (Raspberry Pi) | `kyuu-linux-arm64` |
+            | macOS Apple Silicon | `kyuu-macos-arm64` |
+            | macOS Intel | `kyuu-macos-x64` |
+            | Windows | `kyuu-windows-x64.exe` |
 
             **Linux:**
             ```bash
-            chmod +x sonos-controller-linux-x64
-            ./sonos-controller-linux-x64
+            chmod +x kyuu-linux-x64
+            ./kyuu-linux-x64
             ```
 
             **macOS Apple Silicon:**
             ```bash
-            xattr -d com.apple.quarantine sonos-controller-macos-arm64
-            chmod +x sonos-controller-macos-arm64
-            ./sonos-controller-macos-arm64
+            xattr -d com.apple.quarantine kyuu-macos-arm64
+            chmod +x kyuu-macos-arm64
+            ./kyuu-macos-arm64
             ```
 
             **macOS Intel:**
             ```bash
-            xattr -d com.apple.quarantine sonos-controller-macos-x64
-            chmod +x sonos-controller-macos-x64
-            ./sonos-controller-macos-x64
+            xattr -d com.apple.quarantine kyuu-macos-x64
+            chmod +x kyuu-macos-x64
+            ./kyuu-macos-x64
             ```
 
             > **macOS note:** If you see _"damaged and can't be opened"_, run the `xattr` command above first. This removes the Gatekeeper quarantine flag that macOS applies to unsigned binaries downloaded from the internet. The binary is safe — it's just not signed with an Apple Developer certificate.
 
-            **Windows:** Double-click `sonos-controller-windows-x64.exe`
+            **Windows:** Double-click `kyuu-windows-x64.exe`
 
             The binary runs a local server on port 3001. All devices on your
             network can connect — no Docker or Node.js required.

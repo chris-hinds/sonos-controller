@@ -53,8 +53,20 @@ async function runDiscovery(): Promise<void> {
 
       const info = await fetchDeviceDescription(location);
       if (info) {
-        speakerMap.set(info.ip, info);
-        console.log(`[SSDP] Discovered: ${info.name} (${info.ip})`);
+        const existing = speakerMap.get(info.ip);
+        if (existing) {
+          // Preserve topology fields set by topology polling
+          speakerMap.set(info.ip, {
+            ...info,
+            isCoordinator: existing.isCoordinator,
+            groupId: existing.groupId,
+            coordinatorIp: existing.coordinatorIp,
+            groupMembers: existing.groupMembers,
+          });
+        } else {
+          speakerMap.set(info.ip, info);
+          console.log(`[SSDP] Discovered: ${info.name} (${info.ip})`);
+        }
       }
     });
 

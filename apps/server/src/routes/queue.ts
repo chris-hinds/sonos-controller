@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getSpeakers } from '../discovery/ssdp.js';
 import { getQueue } from '../upnp/contentDirectory.js';
-import { seekToQueueItem, setAVTransportURI, play } from '../upnp/avTransport.js';
+import { seekToQueueItem, reorderQueueItem, setAVTransportURI, play } from '../upnp/avTransport.js';
 import { setGracePeriod } from '../poller.js';
 
 const router = Router();
@@ -20,11 +20,8 @@ function getCoordinatorRinconId(ip: string): string | null {
   const speakers = getSpeakers();
   const coordIp = getCoordinatorIp(ip);
   const coordinator = speakers.find(s => s.ip === coordIp);
-  if (coordinator?.uuid) {
-    const uuid = coordinator.uuid.replace(/-/g, '').toUpperCase();
-    return `RINCON_${uuid}_01400`;
-  }
-  return null;
+  // UUID from SSDP is already in RINCON_XXXX format after stripping "uuid:" prefix
+  return coordinator?.uuid ?? null;
 }
 
 router.get('/:ip/queue', async (req, res) => {
@@ -49,7 +46,9 @@ router.post('/:ip/play-queue-item', async (req, res) => {
     if (rinconId) {
       try {
         await setAVTransportURI(coordIp, `x-rincon-queue:${rinconId}#0`, '');
-      } catch { /* already playing from queue */ }
+      } catch (e) {
+        console.warn('[Route] play-queue-item: setAVTransportURI failed (may already be on queue):', (e as Error).message);
+      }
     }
 
     await seekToQueueItem(coordIp, Number(index));
@@ -60,6 +59,21 @@ router.post('/:ip/play-queue-item', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('[Route] play-queue-item error:', (err as Error).message);
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+router.post('/:ip/reorder-queue', async (req, res) => {
+  try {
+    const { fromIndex, toIndex } = req.body as { fromIndex?: number; toIndex?: number };
+    if (fromIndex === undefined || toIndex === undefined) {
+      res.status(400).json({ error: 'fromIndex and toIndex required' }); return;
+    }
+    const coordIp = getCoordinatorIp(req.params.ip);
+    await reorderQueueItem(coordIp, Number(fromIndex), Number(toIndex));
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[Route] reorder-queue error:', (err as Error).message);
     res.status(500).json({ error: (err as Error).message });
   }
 });

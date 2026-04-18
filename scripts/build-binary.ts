@@ -91,7 +91,7 @@ ${entries.join(',\n')}
   execSync(`mkdir -p ${OUT_DIR}`);
 
   for (const { name, target, ext = '' } of TARGETS) {
-    const outFile = join(OUT_DIR, `sonos-controller-${name}${ext}`);
+    const outFile = join(OUT_DIR, `kyuu-${name}${ext}`);
     console.log(`  → ${name}`);
     execSync(
       `bun build --compile --target=${target} src/index.ts --outfile=${outFile}`,
@@ -104,7 +104,7 @@ ${entries.join(',\n')}
 
   console.log('\n✓ Binaries written to dist/binaries/');
   for (const { name, ext = '' } of TARGETS) {
-    console.log(`  dist/binaries/sonos-controller-${name}${ext}`);
+    console.log(`  dist/binaries/kyuu-${name}${ext}`);
   }
 
 } catch (err) {

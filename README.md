@@ -1,4 +1,4 @@
-# Sonos Controller
+# Kyuu
 
 A self-hosted web interface for controlling your Sonos speakers. Runs as a single binary or Docker container — no Sonos app required.
 
@@ -35,41 +35,41 @@ A self-hosted web interface for controlling your Sonos speakers. Runs as a singl
 
 No Docker, no Node.js. Download, make executable, run.
 
-1. Go to the [latest release](https://github.com/chris-hinds/sonos-controller/releases/latest)
+1. Go to the [latest release](https://github.com/chris-hinds/kyuu/releases/latest)
 2. Download the binary for your platform:
 
 | Platform                       | File                               |
 | ------------------------------ | ---------------------------------- |
-| Linux x64                      | `sonos-controller-linux-x64`       |
-| Linux ARM64 (Raspberry Pi)     | `sonos-controller-linux-arm64`     |
-| macOS Apple Silicon (M1/M2/M3) | `sonos-controller-macos-arm64`     |
-| macOS Intel                    | `sonos-controller-macos-x64`       |
-| Windows                        | `sonos-controller-windows-x64.exe` |
+| Linux x64                      | `kyuu-linux-x64`       |
+| Linux ARM64 (Raspberry Pi)     | `kyuu-linux-arm64`     |
+| macOS Apple Silicon (M1/M2/M3) | `kyuu-macos-arm64`     |
+| macOS Intel                    | `kyuu-macos-x64`       |
+| Windows                        | `kyuu-windows-x64.exe` |
 
 **Linux:**
 
 ```bash
-chmod +x sonos-controller-linux-x64
-./sonos-controller-linux-x64
+chmod +x kyuu-linux-x64
+./kyuu-linux-x64
 ```
 
 **macOS Apple Silicon:**
 
 ```bash
-xattr -d com.apple.quarantine sonos-controller-macos-arm64
-chmod +x sonos-controller-macos-arm64
-./sonos-controller-macos-arm64
+xattr -d com.apple.quarantine kyuu-macos-arm64
+chmod +x kyuu-macos-arm64
+./kyuu-macos-arm64
 ```
 
 **macOS Intel:**
 
 ```bash
-xattr -d com.apple.quarantine sonos-controller-macos-x64
-chmod +x sonos-controller-macos-x64
-./sonos-controller-macos-x64
+xattr -d com.apple.quarantine kyuu-macos-x64
+chmod +x kyuu-macos-x64
+./kyuu-macos-x64
 ```
 
-**Windows:** Double-click `sonos-controller-windows-x64.exe`
+**Windows:** Double-click `kyuu-windows-x64.exe`
 
 3. Open `http://localhost:3001` in your browser
 
@@ -86,7 +86,7 @@ Requires Docker on a machine that is on the **same network as your Sonos speaker
 **Using Docker Compose (recommended):**
 
 ```bash
-curl -O https://raw.githubusercontent.com/chris-hinds/sonos-controller/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/chris-hinds/kyuu/main/docker-compose.yml
 docker compose up -d
 ```
 
@@ -96,8 +96,8 @@ docker compose up -d
 docker run -d \
   --network host \
   --restart unless-stopped \
-  --name sonos-controller \
-  ghcr.io/chris-hinds/sonos-controller:latest
+  --name kyuu \
+  ghcr.io/chris-hinds/kyuu:latest
 ```
 
 Open `http://localhost:3001` in your browser.
@@ -108,8 +108,8 @@ Open `http://localhost:3001` in your browser.
 docker run -d \
   --network host \
   -e PORT=8080 \
-  --name sonos-controller \
-  ghcr.io/chris-hinds/sonos-controller:latest
+  --name kyuu \
+  ghcr.io/chris-hinds/kyuu:latest
 ```
 
 ---
@@ -121,21 +121,21 @@ The binary and Docker image both support ARM64. A Raspberry Pi makes an ideal al
 **Binary:**
 
 ```bash
-wget https://github.com/chris-hinds/sonos-controller/releases/latest/download/sonos-controller-linux-arm64
-chmod +x sonos-controller-linux-arm64
-./sonos-controller-linux-arm64
+wget https://github.com/chris-hinds/kyuu/releases/latest/download/kyuu-linux-arm64
+chmod +x kyuu-linux-arm64
+./kyuu-linux-arm64
 ```
 
 **Run on boot with systemd:**
 
 ```ini
-# /etc/systemd/system/sonos-controller.service
+# /etc/systemd/system/kyuu.service
 [Unit]
-Description=Sonos Controller
+Description=Kyuu — local Sonos controller
 After=network.target
 
 [Service]
-ExecStart=/home/pi/sonos-controller-linux-arm64
+ExecStart=/home/pi/kyuu-linux-arm64
 Restart=always
 User=pi
 
@@ -144,7 +144,7 @@ WantedBy=multi-user.target
 ```
 
 ```bash
-sudo systemctl enable --now sonos-controller
+sudo systemctl enable --now kyuu
 ```
 
 ---
@@ -169,7 +169,7 @@ Settings are accessed via the gear icon (⚙) in the top-right corner.
 The server runs on your local network and communicates with Sonos speakers directly over UPnP/SSDP — the same protocol Sonos uses internally. No internet connection is required after the initial download.
 
 ```
-Browser  ──HTTP──▶  sonos-controller  ──UPnP──▶  Sonos speakers
+Browser  ──HTTP──▶  kyuu  ──UPnP──▶  Sonos speakers
                        :3001
 ```
 
@@ -201,7 +201,7 @@ Browser  ──HTTP──▶  sonos-controller  ──UPnP──▶  Sonos speak
 **macOS "damaged and can't be opened"**
 
 ```bash
-xattr -d com.apple.quarantine ./sonos-controller-macos-arm64
+xattr -d com.apple.quarantine ./kyuu-macos-arm64
 ```
 
 This removes the Gatekeeper quarantine flag. See the [macOS note](#option-a--single-binary-recommended-for-most-users) above.
@@ -209,7 +209,7 @@ This removes the Gatekeeper quarantine flag. See the [macOS note](#option-a--sin
 **Port already in use**
 
 ```bash
-PORT=8080 ./sonos-controller-linux-x64
+PORT=8080 ./kyuu-linux-x64
 ```
 
 **Speakers found but not updating**

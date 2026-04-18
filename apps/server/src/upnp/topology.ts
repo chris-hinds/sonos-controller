@@ -1,6 +1,7 @@
 import { soapCall } from './soap.js';
 import { XMLParser } from 'fast-xml-parser';
 import { getSpeakers, updateSpeaker, speakerMap } from '../discovery/ssdp.js';
+import { broadcast } from '../sse/eventBus.js';
 import type { SpeakerInfo } from '@sonos/shared';
 
 const SERVICE_PATH = '/ZoneGroupTopology/Control';
@@ -38,7 +39,7 @@ async function fetchTopology(): Promise<void> {
       if (!stateXml) continue;
 
       const parsed = topoParser.parse(stateXml);
-      const groups = parsed?.ZoneGroups?.ZoneGroup;
+      const groups = parsed?.ZoneGroupState?.ZoneGroups?.ZoneGroup;
       if (!groups) continue;
 
       const groupArray: unknown[] = Array.isArray(groups) ? groups : [groups];
@@ -135,6 +136,7 @@ async function fetchTopology(): Promise<void> {
         }
       }
 
+      broadcast('speakers', getSpeakers());
       return;
     } catch (err) {
       console.error(`[Topology] Error fetching from ${speaker.ip}:`, (err as Error).message);

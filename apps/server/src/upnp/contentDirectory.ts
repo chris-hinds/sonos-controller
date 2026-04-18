@@ -99,10 +99,19 @@ function extractItemInfo(item: any): ContentItem {
 
   const res = item.res;
   let uri = '';
+  let duration: number | undefined;
   if (res) {
-    if (typeof res === 'string') uri = res;
-    else if (res['#text']) uri = res['#text'];
-    else if (Array.isArray(res)) uri = res[0]?.['#text'] || res[0] || '';
+    const first = Array.isArray(res) ? res[0] : res;
+    if (typeof first === 'string') uri = first;
+    else if (first?.['#text']) uri = first['#text'];
+    // Parse duration attribute e.g. "0:03:52.000"
+    const durStr: string = first?.['@_duration'] || '';
+    if (durStr) {
+      const parts = durStr.split(':').map(parseFloat);
+      if (parts.length === 3) {
+        duration = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      }
+    }
   }
 
   return {
@@ -113,6 +122,7 @@ function extractItemInfo(item: any): ContentItem {
     albumArtURI: String(albumArtURI || ''),
     uri,
     class: item['upnp:class'] || '',
+    ...(duration !== undefined ? { duration } : {}),
   };
 }
 
@@ -165,10 +175,14 @@ async function getQueue(ip: string): Promise<QueueItem[]> {
   try {
     const { result } = await browse(ip, 'Q:0', 'BrowseDirectChildren', '*', 0, 200);
     const items = parseDidlList(result);
-    return items.map((item, index) => ({
-      ...extractItemInfo(item),
-      index,
-    }));
+    return items.map((item, index) => {
+      const info = extractItemInfo(item);
+      // Relative album art paths (e.g. /getaa?...) need the speaker base URL prepended
+      if (info.albumArtURI && info.albumArtURI.startsWith('/')) {
+        info.albumArtURI = `http://${ip}:1400${info.albumArtURI}`;
+      }
+      return { ...info, index };
+    });
   } catch (err) {
     console.error(`[ContentDirectory] getQueue error for ${ip}:`, (err as Error).message);
     return [];

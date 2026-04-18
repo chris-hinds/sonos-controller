@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { Bonjour } from 'bonjour-service';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
@@ -8,7 +9,7 @@ import { files as embeddedFiles } from './_embedded.js';
 
 import { addClient, broadcast, sendToClient, getClientCount } from './sse/eventBus.js';
 import { startDiscovery, getSpeakers } from './discovery/ssdp.js';
-import { startTopologyPolling } from './upnp/topology.js';
+import { startTopologyPolling, fetchTopology } from './upnp/topology.js';
 import { startPoller, groupStateMap } from './poller.js';
 
 import speakersRouter from './routes/speakers.js';
@@ -25,6 +26,11 @@ const PORT = Number(process.env.PORT) || 3001;
 
 app.use(cors({ origin: '*', credentials: false }));
 app.use(express.json());
+
+// Discovery endpoint — used by mobile app to identify this server on the LAN
+app.get('/api/hello', (_req, res) => {
+  res.json({ name: 'Kyuu', port: PORT });
+});
 
 // SSE endpoint
 app.get('/api/events', (req, res) => {
@@ -103,6 +109,10 @@ if (embeddedFiles && embeddedFiles.size > 0) {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`[Server] Running on http://0.0.0.0:${PORT}`);
+  // Advertise via mDNS so clients can discover this server on the LAN
+  const bonjour = new Bonjour();
+  bonjour.publish({ name: 'Kyuu', type: 'kyuu', port: PORT });
+  console.log(`[mDNS] Advertising as kyuu.local:${PORT}`);
 });
 
 setInterval(() => {
@@ -113,6 +123,7 @@ setInterval(() => {
 
 async function bootstrap(): Promise<void> {
   await startDiscovery();
+  await fetchTopology();
 
   const speakers = getSpeakers();
   if (speakers.length > 0) {

@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "turbo": "^2"
+  },
+  "dependencies": {
+    "expo-audio": "~55.0.11"
   }
 }

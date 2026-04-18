@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Kyuu App Icon — K Lettermark, black bg, white K, yellow audio bars -->
+  <rect width="1024" height="1024" rx="230" fill="#111111"/>
+  <!-- K stem -->
+  <rect x="248" y="212" width="128" height="600" rx="30" fill="white"/>
+  <!-- K upper arm -->
+  <rect x="370" y="212" width="118" height="290" rx="26" fill="white" transform="rotate(33 429 357)"/>
+  <!-- K lower arm -->
+  <rect x="370" y="512" width="118" height="290" rx="26" fill="white" transform="rotate(-33 429 657)"/>
+  <!-- Audio bars in #FFD32C -->
+  <rect x="648" y="312" width="52" height="400" rx="20" fill="#FFD32C"/>
+  <rect x="714" y="412" width="52" height="250" rx="20" fill="#FFD32C" opacity="0.70"/>
+  <rect x="780" y="490" width="52" height="140" rx="20" fill="#FFD32C" opacity="0.40"/>
+</svg>
