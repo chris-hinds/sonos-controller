@@ -13,22 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js (for web client build)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-
-      - name: Setup Bun (for server compile)
+      - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install server dependencies (bun)
+      - name: Install server dependencies
         run: bun install
         working-directory: apps/server
 
@@ -48,8 +38,6 @@ jobs:
             Open `http://localhost:3001` in your browser — or share the URL with
             any device on the same network using your machine's IP address.
 
-            | Platform | File |
-            |----------|------|
             | Platform | File |
             |----------|------|
             | Linux x64 | `kyuu-linux-x64` |
