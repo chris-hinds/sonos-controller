@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 /**
  * Builds self-contained single-file binaries for all platforms.
  *
@@ -8,9 +8,11 @@
  */
 
 import { execSync } from 'child_process';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const ROOT = join(import.meta.dirname, '..');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, '..');
 const SERVER_DIR = join(ROOT, 'apps', 'server');
 const BUNDLE = join(ROOT, 'dist', 'kyuu-bundle.cjs');
 const OUT_DIR = join(ROOT, 'dist', 'binaries');
