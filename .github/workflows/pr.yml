@@ -20,52 +20,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  build-linux:
-    name: Build Linux binaries
+  binaries:
+    name: Build binaries
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: '20'
       - name: Install server dependencies
-        run: bun install
+        run: npm install
         working-directory: apps/server
-      - name: Build Linux binaries
-        run: |
-          mkdir -p dist/binaries
-          bun build --compile --target=bun-linux-x64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-linux-x64
-          bun build --compile --target=bun-linux-arm64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-linux-arm64
-
-  build-macos:
-    name: Build macOS binaries
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Install server dependencies
-        run: bun install
-        working-directory: apps/server
-      - name: Build macOS binaries
-        run: |
-          mkdir -p dist/binaries
-          bun build --compile --target=bun-darwin-arm64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-macos-arm64
-          bun build --compile --target=bun-darwin-x64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-macos-x64
-
-  build-windows:
-    name: Build Windows binary
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Install server dependencies
-        run: bun install
-        working-directory: apps/server
-      - name: Build Windows binary
-        run: |
-          mkdir -Force dist/binaries
-          bun build --compile --target=bun-windows-x64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-windows-x64.exe
+      - name: Build all binaries
+        run: node scripts/build-binary.ts
