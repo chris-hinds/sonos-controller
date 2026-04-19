@@ -43,6 +43,8 @@ jobs:
   binaries-linux-windows:
     name: Build Linux + Windows binaries
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -61,19 +63,24 @@ jobs:
             --outfile=$GITHUB_WORKSPACE/dist/kyuu-bundle.cjs \
             "--banner:js=const _importMetaUrl=require('url').pathToFileURL(__filename).href;" \
             --define:import.meta.url=_importMetaUrl
-      - name: Package Linux + Windows binaries
+      - name: Package binaries
         run: |
           npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-linux-x64 --output dist/binaries/kyuu-linux-x64
           npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-linux-arm64 --output dist/binaries/kyuu-linux-arm64
           npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-win-x64 --output dist/binaries/kyuu-windows-x64.exe
-      - uses: actions/upload-artifact@v4
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: linux-windows-binaries
-          path: dist/binaries/
+          files: |
+            dist/binaries/kyuu-linux-x64
+            dist/binaries/kyuu-linux-arm64
+            dist/binaries/kyuu-windows-x64.exe
 
   binaries-macos:
     name: Build macOS binaries
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -92,34 +99,15 @@ jobs:
             --outfile=$GITHUB_WORKSPACE/dist/kyuu-bundle.cjs \
             "--banner:js=const _importMetaUrl=require('url').pathToFileURL(__filename).href;" \
             --define:import.meta.url=_importMetaUrl
-      - name: Package macOS binaries
+      - name: Package and sign macOS binaries
         run: |
           npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-macos-arm64 --output dist/binaries/kyuu-macos-arm64
           npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-macos-x64 --output dist/binaries/kyuu-macos-x64
-      - name: Ad-hoc sign macOS binaries
-        run: |
           codesign -f -s - dist/binaries/kyuu-macos-arm64
           codesign -f -s - dist/binaries/kyuu-macos-x64
-      - uses: actions/upload-artifact@v4
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: macos-binaries
-          path: dist/binaries/
-
-  release:
-    name: Create GitHub release
-    needs: [binaries-linux-windows, binaries-macos]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: '*-binaries'
-          path: dist/binaries
-          merge-multiple: true
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: dist/binaries/*
           body: |
             ## Kyuu ${{ github.ref_name }}
 
@@ -148,3 +136,6 @@ jobs:
             **Windows:** Double-click `kyuu-windows-x64.exe`
 
             No Docker or Node.js required.
+          files: |
+            dist/binaries/kyuu-macos-arm64
+            dist/binaries/kyuu-macos-x64
