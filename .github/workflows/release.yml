@@ -40,8 +40,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  binaries:
-    name: Build binaries
+  binaries-linux-windows:
+    name: Build Linux + Windows binaries
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,24 +53,70 @@ jobs:
       - name: Install server dependencies
         run: npm install
         working-directory: apps/server
-      - name: Build all binaries
-        run: npx tsx scripts/build-binary.ts
+      - name: Bundle server
+        working-directory: apps/server
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/dist/binaries
+          npx esbuild src/index.ts --bundle --platform=node --format=cjs \
+            --outfile=$GITHUB_WORKSPACE/dist/kyuu-bundle.cjs \
+            "--banner:js=const _importMetaUrl=require('url').pathToFileURL(__filename).href;" \
+            --define:import.meta.url=_importMetaUrl
+      - name: Package Linux + Windows binaries
+        run: |
+          npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-linux-x64 --output dist/binaries/kyuu-linux-x64
+          npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-linux-arm64 --output dist/binaries/kyuu-linux-arm64
+          npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-win-x64 --output dist/binaries/kyuu-windows-x64.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: binaries
+          name: linux-windows-binaries
+          path: dist/binaries/
+
+  binaries-macos:
+    name: Build macOS binaries
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm install
+      - name: Install server dependencies
+        run: npm install
+        working-directory: apps/server
+      - name: Bundle server
+        working-directory: apps/server
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/dist/binaries
+          npx esbuild src/index.ts --bundle --platform=node --format=cjs \
+            --outfile=$GITHUB_WORKSPACE/dist/kyuu-bundle.cjs \
+            "--banner:js=const _importMetaUrl=require('url').pathToFileURL(__filename).href;" \
+            --define:import.meta.url=_importMetaUrl
+      - name: Package macOS binaries
+        run: |
+          npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-macos-arm64 --output dist/binaries/kyuu-macos-arm64
+          npx @yao-pkg/pkg dist/kyuu-bundle.cjs --targets node20-macos-x64 --output dist/binaries/kyuu-macos-x64
+      - name: Ad-hoc sign macOS binaries
+        run: |
+          codesign -f -s - dist/binaries/kyuu-macos-arm64
+          codesign -f -s - dist/binaries/kyuu-macos-x64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-binaries
           path: dist/binaries/
 
   release:
     name: Create GitHub release
-    needs: [binaries]
+    needs: [binaries-linux-windows, binaries-macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: binaries
+          pattern: '*-binaries'
           path: dist/binaries
+          merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/binaries/*
