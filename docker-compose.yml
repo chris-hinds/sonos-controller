@@ -1,6 +1,6 @@
 services:
   kyuu-server:
-    image: ghcr.io/${GITHUB_REPOSITORY:-kyuu}:latest
+    image: ghcr.io/chris-hinds/sonos-controller:latest
     network_mode: host
     restart: unless-stopped
     environment:

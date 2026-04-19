@@ -37,7 +37,7 @@ The Kyuu server must run on a machine on the **same local network as your Sonos 
 
 ### Option A — Binary (easiest)
 
-Download the binary for your platform from the [latest release](https://github.com/that-creative/kyuu/releases/latest):
+Download the binary for your platform from the [latest release](https://github.com/chris-hinds/sonos-controller/releases/latest):
 
 | Platform | File |
 |----------|------|
@@ -80,7 +80,7 @@ Requires Docker on a Linux machine on the same network as your Sonos speakers. H
 
 **Docker Compose (recommended):**
 ```bash
-curl -O https://raw.githubusercontent.com/that-creative/kyuu/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/chris-hinds/sonos-controller/main/docker-compose.yml
 docker compose up -d
 ```
 
@@ -90,7 +90,7 @@ docker run -d \
   --network host \
   --restart unless-stopped \
   --name kyuu \
-  ghcr.io/that-creative/kyuu:latest
+  ghcr.io/chris-hinds/sonos-controller:latest
 ```
 
 **Custom port:**
@@ -99,7 +99,7 @@ docker run -d \
   --network host \
   -e PORT=8080 \
   --name kyuu \
-  ghcr.io/that-creative/kyuu:latest
+  ghcr.io/chris-hinds/sonos-controller:latest
 ```
 
 ---
@@ -109,7 +109,7 @@ docker run -d \
 A Pi makes a great always-on host. Use Docker or the ARM64 binary:
 
 ```bash
-wget https://github.com/that-creative/kyuu/releases/latest/download/kyuu-linux-arm64
+wget https://github.com/chris-hinds/sonos-controller/releases/latest/download/kyuu-linux-arm64
 chmod +x kyuu-linux-arm64
 ./kyuu-linux-arm64
 ```
