@@ -12,7 +12,8 @@
     "typecheck": "turbo typecheck"
   },
   "devDependencies": {
-    "turbo": "^2"
+    "turbo": "^2",
+    "tsx": "^4.0"
   },
   "dependencies": {
     "expo-audio": "~55.0.11"
