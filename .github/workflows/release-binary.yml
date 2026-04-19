@@ -6,27 +6,86 @@ on:
       - 'v*'
 
 jobs:
-  build:
-    name: Build binaries
+  build-linux:
+    name: Build Linux binaries
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install server dependencies
         run: bun install
         working-directory: apps/server
+      - name: Build Linux binaries
+        run: |
+          mkdir -p dist/binaries
+          cd apps/server
+          bun build --compile --target=bun-linux-x64 src/index.ts --outfile=../../dist/binaries/kyuu-linux-x64
+          bun build --compile --target=bun-linux-arm64 src/index.ts --outfile=../../dist/binaries/kyuu-linux-arm64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-binaries
+          path: dist/binaries/
 
-      - name: Build binaries (all platforms)
-        run: bun run scripts/build-binary.ts
+  build-macos:
+    name: Build macOS binaries
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install server dependencies
+        run: bun install
+        working-directory: apps/server
+      - name: Build macOS binaries
+        run: |
+          mkdir -p dist/binaries
+          cd apps/server
+          bun build --compile --target=bun-darwin-arm64 src/index.ts --outfile=../../dist/binaries/kyuu-macos-arm64
+          bun build --compile --target=bun-darwin-x64 src/index.ts --outfile=../../dist/binaries/kyuu-macos-x64
+      - name: Ad-hoc sign binaries
+        run: |
+          codesign --sign - dist/binaries/kyuu-macos-arm64
+          codesign --sign - dist/binaries/kyuu-macos-x64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-binaries
+          path: dist/binaries/
 
-      - name: Upload binaries to release
-        uses: softprops/action-gh-release@v2
+  build-windows:
+    name: Build Windows binary
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install server dependencies
+        run: bun install
+        working-directory: apps/server
+      - name: Build Windows binary
+        run: |
+          mkdir -Force dist/binaries
+          cd apps/server
+          bun build --compile --target=bun-windows-x64 src/index.ts --outfile=../../dist/binaries/kyuu-windows-x64.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: dist/binaries/
+
+  release:
+    name: Upload to release
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*-binaries'
+          path: dist/binaries
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
         with:
           files: dist/binaries/*
           body: |
@@ -35,8 +94,7 @@ jobs:
             ### Quick start
 
             Download the binary for your platform, make it executable, and run it.
-            Open `http://localhost:3001` in your browser — or share the URL with
-            any device on the same network using your machine's IP address.
+            The server runs on port 3001 — point the Kyuu iOS app at your machine's IP address.
 
             | Platform | File |
             |----------|------|
@@ -46,29 +104,15 @@ jobs:
             | macOS Intel | `kyuu-macos-x64` |
             | Windows | `kyuu-windows-x64.exe` |
 
-            **Linux:**
+            **Linux / macOS:**
             ```bash
-            chmod +x kyuu-linux-x64
-            ./kyuu-linux-x64
-            ```
-
-            **macOS Apple Silicon:**
-            ```bash
-            xattr -d com.apple.quarantine kyuu-macos-arm64
             chmod +x kyuu-macos-arm64
             ./kyuu-macos-arm64
             ```
 
-            **macOS Intel:**
-            ```bash
-            xattr -d com.apple.quarantine kyuu-macos-x64
-            chmod +x kyuu-macos-x64
-            ./kyuu-macos-x64
-            ```
-
-            > **macOS note:** If you see _"damaged and can't be opened"_, run the `xattr` command above first. This removes the Gatekeeper quarantine flag that macOS applies to unsigned binaries downloaded from the internet. The binary is safe — it's just not signed with an Apple Developer certificate.
+            > **macOS note:** If you see _"damaged and can't be opened"_, run:
+            > `xattr -d com.apple.quarantine ./kyuu-macos-arm64`
 
             **Windows:** Double-click `kyuu-windows-x64.exe`
 
-            The binary runs a local server on port 3001. All devices on your
-            network can connect — no Docker or Node.js required.
+            No Docker or Node.js required.
