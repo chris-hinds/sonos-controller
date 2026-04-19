@@ -1,19 +1,29 @@
-import { useState, useEffect } from 'react';
-import api from '../api/sonosApi';
-import { subscribe } from '../api/sseClient';
-import type { GroupState } from '@sonos/shared';
+import { useState, useEffect } from "react";
+import api from "../api/sonosApi";
+import { subscribe } from "../api/sseClient";
+import type { GroupState } from "@kyuu/shared";
 
-export default function useSpeakerState(speakerIp: string | null): GroupState | null {
+export default function useSpeakerState(
+  speakerIp: string | null,
+): GroupState | null {
   const [state, setState] = useState<GroupState | null>(null);
 
   useEffect(() => {
-    if (!speakerIp) { setState(null); return; }
+    if (!speakerIp) {
+      setState(null);
+      return;
+    }
 
-    api.getSpeakerState(speakerIp)
-      .then(data => { if (data && !(data as { error?: string }).error) setState(data); })
-      .catch(() => { /* ignore */ });
+    api
+      .getSpeakerState(speakerIp)
+      .then((data) => {
+        if (data && !(data as { error?: string }).error) setState(data);
+      })
+      .catch(() => {
+        /* ignore */
+      });
 
-    return subscribe('groupState', (event: MessageEvent) => {
+    return subscribe("groupState", (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data) as GroupState;
         if (
@@ -22,7 +32,9 @@ export default function useSpeakerState(speakerIp: string | null): GroupState | 
         ) {
           setState(data);
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     });
   }, [speakerIp]);
 

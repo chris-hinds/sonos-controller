@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/sonosApi';
-import type { FavoriteItem, GroupState } from '@sonos/shared';
+import type { FavoriteItem, GroupState } from '@kyuu/shared';
 
 interface FavoritesProps {
   speakerIp: string;

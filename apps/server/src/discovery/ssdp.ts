@@ -1,17 +1,24 @@
-import ssdp from 'node-ssdp';
+import ssdp from "node-ssdp";
 const { Client } = ssdp;
-import { XMLParser } from 'fast-xml-parser';
-import type { SpeakerInfo } from '@sonos/shared';
+import { XMLParser } from "fast-xml-parser";
+import type { SpeakerInfo } from "@kyuu/shared";
 
-const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
+const parser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: "@_",
+});
 
 const speakerMap = new Map<string, SpeakerInfo>();
 
-async function fetchDeviceDescription(location: string): Promise<SpeakerInfo | null> {
+async function fetchDeviceDescription(
+  location: string,
+): Promise<SpeakerInfo | null> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(location, { signal: controller.signal }).finally(() => clearTimeout(timer));
+    const res = await fetch(location, { signal: controller.signal }).finally(
+      () => clearTimeout(timer),
+    );
     if (!res.ok) return null;
     const xml = await res.text();
     const parsed = parser.parse(xml);
@@ -23,15 +30,18 @@ async function fetchDeviceDescription(location: string): Promise<SpeakerInfo | n
 
     return {
       ip,
-      uuid: (device.UDN || '').replace('uuid:', ''),
+      uuid: (device.UDN || "").replace("uuid:", ""),
       name: device.roomName || device.friendlyName || ip,
-      model: device.modelName || 'Sonos',
+      model: device.modelName || "Sonos",
       isCoordinator: false,
-      groupId: '',
-      coordinatorIp: '',
+      groupId: "",
+      coordinatorIp: "",
     };
   } catch (err) {
-    console.error('[SSDP] Error fetching device description:', (err as Error).message);
+    console.error(
+      "[SSDP] Error fetching device description:",
+      (err as Error).message,
+    );
     return null;
   }
 }
@@ -46,8 +56,8 @@ async function runDiscovery(): Promise<void> {
       resolve();
     }, 5000);
 
-    client.on('response', async (headers) => {
-      const location = headers['LOCATION'] || headers['location'];
+    client.on("response", async (headers) => {
+      const location = headers["LOCATION"] || headers["location"];
       if (!location || discovered.has(location)) return;
       discovered.add(location);
 
@@ -70,7 +80,7 @@ async function runDiscovery(): Promise<void> {
       }
     });
 
-    client.search('urn:schemas-upnp-org:device:ZonePlayer:1');
+    client.search("urn:schemas-upnp-org:device:ZonePlayer:1");
 
     // Suppress unused variable warning — timeout is cleared inside the callback
     void timeout;
@@ -78,12 +88,12 @@ async function runDiscovery(): Promise<void> {
 }
 
 async function startDiscovery(): Promise<void> {
-  console.log('[SSDP] Starting discovery...');
+  console.log("[SSDP] Starting discovery...");
   await runDiscovery();
   console.log(`[SSDP] Found ${speakerMap.size} speaker(s)`);
 
   setInterval(() => {
-    console.log('[SSDP] Re-running discovery...');
+    console.log("[SSDP] Re-running discovery...");
     void runDiscovery();
   }, 60000);
 }

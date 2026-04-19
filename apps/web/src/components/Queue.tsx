@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/sonosApi';
-import type { GroupState, QueueItem } from '@sonos/shared';
+import type { GroupState, QueueItem } from '@kyuu/shared';
 
 interface QueueProps {
   speakerIp: string;

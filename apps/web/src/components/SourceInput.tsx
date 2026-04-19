@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/sonosApi';
-import type { AudioInput, GroupState } from '@sonos/shared';
+import type { AudioInput, GroupState } from '@kyuu/shared';
 
 interface SourceInputProps {
   speakerIp: string;

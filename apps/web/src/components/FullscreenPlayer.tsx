@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/sonosApi';
-import type { GroupState, RepeatMode } from '@sonos/shared';
+import type { GroupState, RepeatMode } from '@kyuu/shared';
 
 function formatTime(seconds: number): string {
   if (!seconds || isNaN(seconds)) return '0:00';

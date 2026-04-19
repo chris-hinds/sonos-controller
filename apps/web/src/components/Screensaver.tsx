@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/sonosApi';
-import type { GroupState } from '@sonos/shared';
+import type { GroupState } from '@kyuu/shared';
 
 interface ScreensaverProps {
   state: GroupState | null;

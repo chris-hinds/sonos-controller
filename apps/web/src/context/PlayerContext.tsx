@@ -5,7 +5,7 @@ import useAlbumColor from '../hooks/useAlbumColor';
 import { useClientSettings } from '../hooks/useClientSettings';
 import useTheme from '../hooks/useTheme';
 import api from '../api/sonosApi';
-import type { GroupState, SpeakerInfo } from '@sonos/shared';
+import type { GroupState, SpeakerInfo } from '@kyuu/shared';
 import type { ClientSettings } from '../hooks/useClientSettings';
 
 interface PlayerContextValue {

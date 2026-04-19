@@ -1,8 +1,19 @@
-import { getTransportInfo, getPositionInfo, getTransportSettings, getMediaInfo } from './upnp/avTransport.js';
-import { getVolumeAndMute } from './upnp/renderingControl.js';
-import { getSpeakers } from './discovery/ssdp.js';
-import { broadcast } from './sse/eventBus.js';
-import type { GroupState, SpeakerInfo, ContainerInfo, RepeatMode, VolumeEntry } from '@sonos/shared';
+import {
+  getTransportInfo,
+  getPositionInfo,
+  getTransportSettings,
+  getMediaInfo,
+} from "./upnp/avTransport.js";
+import { getVolumeAndMute } from "./upnp/renderingControl.js";
+import { getSpeakers } from "./discovery/ssdp.js";
+import { broadcast } from "./sse/eventBus.js";
+import type {
+  GroupState,
+  SpeakerInfo,
+  ContainerInfo,
+  RepeatMode,
+  VolumeEntry,
+} from "@kyuu/shared";
 
 const POLL_INTERVAL_MS = 2000;
 
@@ -38,60 +49,73 @@ function isInGracePeriod(groupId: string, field: string): boolean {
 
 function getGroupState(ip: string): GroupState | null {
   const speakers = getSpeakers();
-  const speaker = speakers.find(s => s.ip === ip);
+  const speaker = speakers.find((s) => s.ip === ip);
   if (!speaker) return null;
   const groupId = speaker.groupId || ip;
   return groupStateMap.get(groupId) || null;
 }
 
-function buildInitialState(coordinator: SpeakerInfo, members: SpeakerInfo[]): GroupState {
+function buildInitialState(
+  coordinator: SpeakerInfo,
+  members: SpeakerInfo[],
+): GroupState {
   const groupId = coordinator.groupId || coordinator.ip;
   return {
     groupId,
     coordinatorIp: coordinator.ip,
-    members: members.map(m => m.ip),
-    transportState: 'STOPPED',
+    members: members.map((m) => m.ip),
+    transportState: "STOPPED",
     track: {
-      title: '',
-      artist: '',
-      album: '',
-      albumArtUrl: '',
+      title: "",
+      artist: "",
+      album: "",
+      albumArtUrl: "",
       duration: 0,
       position: 0,
-      uri: '',
+      uri: "",
     },
     shuffle: false,
-    repeat: 'none',
+    repeat: "none",
     volume: {},
     container: null,
   };
 }
 
-function parseContainerInfo(currentURI: string, metadataXml: string): ContainerInfo | null {
+function parseContainerInfo(
+  currentURI: string,
+  metadataXml: string,
+): ContainerInfo | null {
   if (!currentURI) return null;
-  const isPlaylist = currentURI.startsWith('x-rincon-cpcontainer:') || currentURI.startsWith('x-rincon-playlist:');
+  const isPlaylist =
+    currentURI.startsWith("x-rincon-cpcontainer:") ||
+    currentURI.startsWith("x-rincon-playlist:");
   const isRadio =
-    currentURI.startsWith('x-sonosapi-stream:') ||
-    currentURI.startsWith('x-rincon-mp3radio:') ||
-    currentURI.startsWith('x-sonosapi-radio:');
+    currentURI.startsWith("x-sonosapi-stream:") ||
+    currentURI.startsWith("x-rincon-mp3radio:") ||
+    currentURI.startsWith("x-sonosapi-radio:");
   if (!isPlaylist && !isRadio) return null;
 
   let title: string | null = null;
   if (metadataXml) {
     try {
       const decoded = metadataXml
-        .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&")
+        .replace(/&quot;/g, '"');
       const m = decoded.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/);
       if (m) title = m[1].trim();
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
-  return { title, type: isPlaylist ? 'playlist' : 'radio' };
+  return { title, type: isPlaylist ? "playlist" : "radio" };
 }
 
 function resolveArtUrl(uri: string, speakerIp: string): string {
-  if (!uri) return '';
-  if (uri.startsWith('http://') || uri.startsWith('https://')) return uri;
-  return `http://${speakerIp}:1400${uri.startsWith('/') ? '' : '/'}${uri}`;
+  if (!uri) return "";
+  if (uri.startsWith("http://") || uri.startsWith("https://")) return uri;
+  return `http://${speakerIp}:1400${uri.startsWith("/") ? "" : "/"}${uri}`;
 }
 
 interface PollCoordinatorResult {
@@ -99,26 +123,37 @@ interface PollCoordinatorResult {
   changed: boolean;
 }
 
-async function pollCoordinator(coordinator: SpeakerInfo, members: SpeakerInfo[]): Promise<PollCoordinatorResult> {
+async function pollCoordinator(
+  coordinator: SpeakerInfo,
+  members: SpeakerInfo[],
+): Promise<PollCoordinatorResult> {
   const groupId = coordinator.groupId || coordinator.ip;
   const ip = coordinator.ip;
 
-  const existing = groupStateMap.get(groupId) || buildInitialState(coordinator, members);
+  const existing =
+    groupStateMap.get(groupId) || buildInitialState(coordinator, members);
   let changed = false;
-  const next: GroupState = { ...existing, members: members.map(m => m.ip), coordinatorIp: ip };
+  const next: GroupState = {
+    ...existing,
+    members: members.map((m) => m.ip),
+    coordinatorIp: ip,
+  };
 
   // Transport state
   try {
     const transport = await getTransportInfo(ip);
-    if (!isInGracePeriod(groupId, 'transportState')) {
+    if (!isInGracePeriod(groupId, "transportState")) {
       if (transport.transportState !== existing.transportState) {
-        next.transportState = transport.transportState as GroupState['transportState'];
+        next.transportState =
+          transport.transportState as GroupState["transportState"];
         changed = true;
       }
     }
   } catch (err) {
     if (!warnedTransport.has(ip)) {
-      console.warn(`[Poller] GetTransportInfo not available for ${ip} (${(err as Error).message}) — transport state will rely on optimistic updates`);
+      console.warn(
+        `[Poller] GetTransportInfo not available for ${ip} (${(err as Error).message}) — transport state will rely on optimistic updates`,
+      );
       warnedTransport.add(ip);
     }
   }
@@ -126,22 +161,23 @@ async function pollCoordinator(coordinator: SpeakerInfo, members: SpeakerInfo[])
   // Position / track info
   try {
     const position = await getPositionInfo(ip);
-    if (!isInGracePeriod(groupId, 'track')) {
+    if (!isInGracePeriod(groupId, "track")) {
       const newTrack = {
-        title: position.title || '',
-        artist: position.artist || '',
-        album: position.album || '',
+        title: position.title || "",
+        artist: position.artist || "",
+        album: position.album || "",
         albumArtUrl: resolveArtUrl(position.albumArtURI, ip),
         duration: position.trackDurationSeconds || 0,
         position: position.relTimeSeconds || 0,
-        uri: position.trackURI || '',
+        uri: position.trackURI || "",
       };
 
       const trackChanged =
         newTrack.title !== existing.track?.title ||
         newTrack.artist !== existing.track?.artist ||
         newTrack.uri !== existing.track?.uri ||
-        Math.abs((newTrack.position || 0) - (existing.track?.position || 0)) > 3;
+        Math.abs((newTrack.position || 0) - (existing.track?.position || 0)) >
+          3;
 
       if (trackChanged) {
         next.track = newTrack;
@@ -150,7 +186,9 @@ async function pollCoordinator(coordinator: SpeakerInfo, members: SpeakerInfo[])
     }
   } catch (err) {
     if (!warnedPosition.has(ip)) {
-      console.warn(`[Poller] GetPositionInfo not available for ${ip} (${(err as Error).message}) — position will rely on optimistic updates`);
+      console.warn(
+        `[Poller] GetPositionInfo not available for ${ip} (${(err as Error).message}) — position will rely on optimistic updates`,
+      );
       warnedPosition.add(ip);
     }
   }
@@ -158,11 +196,17 @@ async function pollCoordinator(coordinator: SpeakerInfo, members: SpeakerInfo[])
   // Container / playlist info
   try {
     const media = await getMediaInfo(ip);
-    const container = parseContainerInfo(media.currentURI, media.currentURIMetaData);
+    const container = parseContainerInfo(
+      media.currentURI,
+      media.currentURIMetaData,
+    );
     // Don't wipe a known container when the transport is on a queue URI —
     // the title was set via setContainerForGroup when the favorite started.
-    const isQueueURI = media.currentURI.startsWith('x-rincon-queue:');
-    if (!isQueueURI && JSON.stringify(container) !== JSON.stringify(existing.container)) {
+    const isQueueURI = media.currentURI.startsWith("x-rincon-queue:");
+    if (
+      !isQueueURI &&
+      JSON.stringify(container) !== JSON.stringify(existing.container)
+    ) {
       next.container = container;
       changed = true;
     }
@@ -173,8 +217,11 @@ async function pollCoordinator(coordinator: SpeakerInfo, members: SpeakerInfo[])
   // Shuffle / repeat
   try {
     const settings = await getTransportSettings(ip);
-    if (!isInGracePeriod(groupId, 'playMode')) {
-      if (settings.shuffle !== existing.shuffle || settings.repeat !== existing.repeat) {
+    if (!isInGracePeriod(groupId, "playMode")) {
+      if (
+        settings.shuffle !== existing.shuffle ||
+        settings.repeat !== existing.repeat
+      ) {
         next.shuffle = settings.shuffle;
         next.repeat = settings.repeat as RepeatMode;
         changed = true;
@@ -182,7 +229,9 @@ async function pollCoordinator(coordinator: SpeakerInfo, members: SpeakerInfo[])
     }
   } catch (err) {
     if (!warnedSettings.has(ip)) {
-      console.warn(`[Poller] GetTransportSettings not available for ${ip} — shuffle/repeat will rely on optimistic updates`);
+      console.warn(
+        `[Poller] GetTransportSettings not available for ${ip} — shuffle/repeat will rely on optimistic updates`,
+      );
       warnedSettings.add(ip);
     }
   }
@@ -195,9 +244,14 @@ interface PollVolumesResult {
   volumeChanged: boolean;
 }
 
-async function pollVolumes(groupId: string, members: SpeakerInfo[]): Promise<PollVolumesResult> {
+async function pollVolumes(
+  groupId: string,
+  members: SpeakerInfo[],
+): Promise<PollVolumesResult> {
   const existing = groupStateMap.get(groupId);
-  const volumeState: Record<string, VolumeEntry> = existing?.volume ? { ...existing.volume } : {};
+  const volumeState: Record<string, VolumeEntry> = existing?.volume
+    ? { ...existing.volume }
+    : {};
   let volumeChanged = false;
 
   await Promise.allSettled(
@@ -211,9 +265,12 @@ async function pollVolumes(groupId: string, members: SpeakerInfo[]): Promise<Pol
           volumeChanged = true;
         }
       } catch (err) {
-        console.error(`[Poller] Volume error for ${member.ip}:`, (err as Error).message);
+        console.error(
+          `[Poller] Volume error for ${member.ip}:`,
+          (err as Error).message,
+        );
       }
-    })
+    }),
   );
 
   return { volumeState, volumeChanged };
@@ -238,27 +295,31 @@ async function pollAll(): Promise<void> {
   try {
     await Promise.allSettled(
       Array.from(coordinatorMap.entries()).map(async ([coordIp, members]) => {
-        const coordinator = speakers.find(s => s.ip === coordIp);
+        const coordinator = speakers.find((s) => s.ip === coordIp);
         if (!coordinator) return;
 
         const groupId = coordinator.groupId || coordIp;
 
         try {
-          const [{ next, changed }, { volumeState, volumeChanged }] = await Promise.all([
-            pollCoordinator(coordinator, members),
-            pollVolumes(groupId, members),
-          ]);
+          const [{ next, changed }, { volumeState, volumeChanged }] =
+            await Promise.all([
+              pollCoordinator(coordinator, members),
+              pollVolumes(groupId, members),
+            ]);
 
           const finalState: GroupState = { ...next, volume: volumeState };
           groupStateMap.set(groupId, finalState);
 
           if (changed || volumeChanged) {
-            broadcast('groupState', finalState);
+            broadcast("groupState", finalState);
           }
         } catch (err) {
-          console.error(`[Poller] Error polling group ${groupId}:`, (err as Error).message);
+          console.error(
+            `[Poller] Error polling group ${groupId}:`,
+            (err as Error).message,
+          );
         }
-      })
+      }),
     );
   } finally {
     polling = false;
@@ -267,7 +328,7 @@ async function pollAll(): Promise<void> {
 
 function startPoller(): void {
   if (pollerTimer) clearInterval(pollerTimer);
-  console.log('[Poller] Starting polling loop...');
+  console.log("[Poller] Starting polling loop...");
   pollerTimer = setInterval(() => void pollAll(), POLL_INTERVAL_MS);
   setTimeout(() => void pollAll(), 3000);
 }
@@ -276,12 +337,22 @@ function stopPoller(): void {
   if (pollerTimer) clearInterval(pollerTimer);
 }
 
-function setContainerForGroup(groupId: string, container: ContainerInfo | null): void {
+function setContainerForGroup(
+  groupId: string,
+  container: ContainerInfo | null,
+): void {
   const existing = groupStateMap.get(groupId);
-if (!existing) return;
+  if (!existing) return;
   const updated = { ...existing, container };
   groupStateMap.set(groupId, updated);
-  broadcast('groupState', updated);
+  broadcast("groupState", updated);
 }
 
-export { startPoller, stopPoller, getGroupState, setGracePeriod, groupStateMap, setContainerForGroup };
+export {
+  startPoller,
+  stopPoller,
+  getGroupState,
+  setGracePeriod,
+  groupStateMap,
+  setContainerForGroup,
+};

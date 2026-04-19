@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import api from '../api/sonosApi';
 import useSpeakerState from '../hooks/useSpeakerState';
-import type { SpeakerInfo } from '@sonos/shared';
+import type { SpeakerInfo } from '@kyuu/shared';
 
 interface SpeakerItemProps {
   speaker: SpeakerInfo;

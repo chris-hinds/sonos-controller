@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import api from '../api/sonosApi';
-import type { GroupState, SpeakerInfo } from '@sonos/shared';
+import type { GroupState, SpeakerInfo } from '@kyuu/shared';
 
 const STEP = 5;
 const LONG_PRESS_DELAY = 400;  // ms before continuous repeat starts
