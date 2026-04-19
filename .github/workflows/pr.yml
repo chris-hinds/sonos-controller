@@ -1,0 +1,76 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  docker:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-linux:
+    name: Build Linux binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install server dependencies
+        run: bun install
+        working-directory: apps/server
+      - name: Build Linux binaries
+        run: |
+          mkdir -p dist/binaries
+          bun build --compile --target=bun-linux-x64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-linux-x64
+          bun build --compile --target=bun-linux-arm64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-linux-arm64
+
+  build-macos:
+    name: Build macOS binaries
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install server dependencies
+        run: bun install
+        working-directory: apps/server
+      - name: Build macOS binaries
+        run: |
+          mkdir -p dist/binaries
+          bun build --compile --target=bun-darwin-arm64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-macos-arm64
+          bun build --compile --target=bun-darwin-x64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-macos-x64
+      - name: Ad-hoc sign binaries
+        run: |
+          chmod +x dist/binaries/kyuu-macos-arm64 dist/binaries/kyuu-macos-x64
+          codesign -f -s - dist/binaries/kyuu-macos-arm64
+          codesign -f -s - dist/binaries/kyuu-macos-x64
+
+  build-windows:
+    name: Build Windows binary
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install server dependencies
+        run: bun install
+        working-directory: apps/server
+      - name: Build Windows binary
+        run: |
+          mkdir -Force dist/binaries
+          bun build --compile --target=bun-windows-x64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-windows-x64.exe
