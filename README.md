@@ -52,6 +52,8 @@ docker compose up -d
 
 Mac and Windows binaries are in the works for those who don't want to run Docker. Linux and Raspberry Pi binaries are available on the [releases page](https://github.com/that-creative/kyuu/releases).
 
+> **macOS 26 beta:** Compiled binaries are not yet compatible with macOS 26 due to a Bun limitation. Use Docker or run the server directly with `bun run apps/server/src/index.ts`.
+
 ### 2. Install the iOS app
 
 The app is currently in **TestFlight beta**. [Join here →](https://testflight.apple.com/join/xxxxxxxx)

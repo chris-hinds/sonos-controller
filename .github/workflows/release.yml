@@ -40,80 +40,37 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  build-linux:
-    name: Build Linux binaries
+  binaries:
+    name: Build binaries
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: '20'
+      - name: Install dependencies
+        run: npm install
       - name: Install server dependencies
-        run: bun install
+        run: npm install
         working-directory: apps/server
-      - name: Build Linux binaries
-        run: |
-          mkdir -p dist/binaries
-          bun build --compile --target=bun-linux-x64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-linux-x64
-          bun build --compile --target=bun-linux-arm64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-linux-arm64
+      - name: Build all binaries
+        run: npx tsx scripts/build-binary.ts
       - uses: actions/upload-artifact@v4
         with:
-          name: linux-binaries
-          path: dist/binaries/
-
-  build-macos:
-    name: Build macOS binaries
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Install server dependencies
-        run: bun install
-        working-directory: apps/server
-      - name: Build macOS binaries
-        run: |
-          mkdir -p dist/binaries
-          bun build --compile --target=bun-darwin-arm64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-macos-arm64
-          bun build --compile --target=bun-darwin-x64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-macos-x64
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos-binaries
-          path: dist/binaries/
-
-  build-windows:
-    name: Build Windows binary
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Install server dependencies
-        run: bun install
-        working-directory: apps/server
-      - name: Build Windows binary
-        run: |
-          mkdir -Force dist/binaries
-          bun build --compile --target=bun-windows-x64 apps/server/src/index.ts --outfile=dist/binaries/kyuu-windows-x64.exe
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows-binaries
+          name: binaries
           path: dist/binaries/
 
   release:
     name: Create GitHub release
-    needs: [build-linux, build-macos, build-windows]
+    needs: [binaries]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: '*-binaries'
+          name: binaries
           path: dist/binaries
-          merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/binaries/*
