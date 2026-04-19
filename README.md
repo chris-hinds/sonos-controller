@@ -49,10 +49,14 @@ Download the binary for your platform from the [latest release](https://github.c
 
 **macOS:**
 ```bash
-xattr -d com.apple.quarantine ./kyuu-macos-arm64
 chmod +x ./kyuu-macos-arm64
 ./kyuu-macos-arm64
 ```
+
+> **Security warning:** macOS will block the binary the first time because it's not signed with an Apple Developer certificate. To allow it, go to **System Settings → Privacy & Security** and click **Open Anyway**. Alternatively, remove the quarantine flag before running:
+> ```bash
+> xattr -d com.apple.quarantine ./kyuu-macos-arm64
+> ```
 
 **Linux:**
 ```bash
@@ -61,6 +65,8 @@ chmod +x ./kyuu-linux-x64
 ```
 
 **Windows:** Double-click `kyuu-windows-x64.exe`
+
+> **Security warning:** Windows SmartScreen may show an "Unknown publisher" warning. Click **More info → Run anyway** to proceed. The binary is safe — it's simply not signed with a Microsoft-recognised certificate.
 
 The server starts on port 3001. No Node.js or Docker required.
 
@@ -154,11 +160,6 @@ iOS app  ──HTTP──▶  Kyuu server  ──UPnP──▶  Sonos speakers
 **App can't find the server**
 - Make sure your phone and the server are on the same Wi-Fi network
 - Try entering the server address manually: `http://<machine-ip>:3001`
-
-**macOS "damaged and can't be opened"**
-```bash
-xattr -d com.apple.quarantine ./kyuu-macos-arm64
-```
 
 **Port already in use**
 ```bash
